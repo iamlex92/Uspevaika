@@ -711,6 +711,7 @@ def register_admin(app: web.Application, *,
             "city", "phone", "min_order", "delivery_price", "free_delivery_from",
             "delivery_days_ahead", "delivery_slots", "delivery_days", "delivery_zones",
             "payment_methods", "pickup", "storage", "brand", "slogan",
+            "reminder_days", "reminder_hour",
         }
 
         def apply(menu: dict) -> tuple[list[str], bool]:
@@ -720,6 +721,20 @@ def register_admin(app: web.Application, *,
                 value = data[key]
                 if key in ("min_order", "delivery_price", "free_delivery_from", "delivery_days_ahead"):
                     value = _price(value)
+                elif key == "reminder_days":
+                    # дни до доставки: 0 — в день доставки, 30 — край
+                    days: list[int] = []
+                    for item in (value if isinstance(value, (list, tuple)) else []):
+                        try:
+                            n = int(str(item).strip())
+                        except (TypeError, ValueError):
+                            continue
+                        if 0 <= n <= 30 and n not in days:
+                            days.append(n)
+                    value = sorted(days)
+                elif key == "reminder_hour":
+                    value = _price(value)
+                    value = min(value, 23)
                 elif key in ("delivery_slots", "delivery_days", "payment_methods"):
                     value = [_text(x, 60) for x in (value or []) if _text(x, 60)][:40]
                 elif key == "delivery_zones":

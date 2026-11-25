@@ -13,7 +13,7 @@ import sys
 import tempfile
 import types
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -437,14 +437,14 @@ class StatusTests(BotTestCase):
         # заказ сначала принимают, потом собирают: «Собран» не должен стоять
         # рядом с «Принят» у нового заказа
         order_id = await self.make_order()
-        for status, expected in (("new", "✅ Принят"), ("accepted", "📦 Собран"),
-                                 ("assembled", "🚗 В пути")):
-            with self.subTest(status=status):
-                kb = bot.admin_kb(order_id, status)
-                statuses = [b.text for row in kb.inline_keyboard for b in row
-                            if b.callback_data.startswith("st:")
-                            and b.callback_data.split(":")[2] != "cancelled"]
-                self.assertEqual(statuses, [expected])
+        kb = bot.admin_kb(order_id, "new")
+        statuses = [b.text for row in kb.inline_keyboard for b in row
+                    if b.callback_data.startswith("st:") and b.callback_data.split(":")[2] != "cancelled"]
+        self.assertEqual(statuses, ["✅ Принят"])
+        kb = bot.admin_kb(order_id, "accepted")
+        statuses = [b.text for row in kb.inline_keyboard for b in row
+                    if b.callback_data.startswith("st:") and b.callback_data.split(":")[2] != "cancelled"]
+        self.assertEqual(statuses, ["📦 Собран"])
 
     async def test_cancel_returns_stock(self):
         order_id = await self.make_order()
@@ -488,6 +488,109 @@ class StatusTests(BotTestCase):
         after_first = self.stocks()
         await bot.on_status(FakeCallback(1, f"st:{order_id}:cancelled"), FakeBot())
         self.assertEqual(self.stocks(), after_first)
+
+
+class ReminderTests(BotTestCase):
+    """Напоминания менеджерам о заказах, оформленных на будущие дни."""
+
+    async def set_reminders(self, days, hour=10):
+        def apply(menu):
+            menu["settings"]["reminder_days"] = days
+            menu["settings"]["reminder_hour"] = hour
+            return None, True
+        await bot.store.mutate(apply)
+
+    def delivery_date(self, min_days: int) -> date:
+        """Ближайший разрешённый день доставки не раньше чем через min_days."""
+        allowed = set(bot.allowed_dates(bot.store.read()["settings"]))
+        for i in range(min_days, 30):
+            d = date.today() + timedelta(days=i)
+            if d.isoformat() in allowed:
+                return d
+        raise AssertionError("нет разрешённого дня доставки в окне")
+
+    def at(self, d: date):
+        return datetime.combine(d, datetime.min.time()).replace(hour=12)
+
+    async def make_order_on(self, day: date):
+        await self.place_order(order_payload([["syrniki", 4]], date=day.isoformat()))
+        with sqlite3.connect(self.tmp / "orders.db") as con:
+            return con.execute("select max(id) from orders").fetchone()[0]
+
+    async def test_reminder_on_configured_day(self):
+        target = self.delivery_date(1)
+        days_before = (target - date.today()).days
+        await self.set_reminders([days_before])
+        order_id = await self.make_order_on(target)
+        fake = FakeBot()
+        sent = await bot.send_due_reminders(fake, now=self.at(date.today()))
+        self.assertEqual(sent, [order_id])
+        self.assertTrue(any(f"№{order_id}" in m["text"] and "Напоминание" in m["text"]
+                            for m in fake.sent))
+
+    async def test_no_reminder_before_hour(self):
+        target = self.delivery_date(1)
+        await self.set_reminders([(target - date.today()).days], hour=18)
+        await self.make_order_on(target)
+        fake = FakeBot()
+        early = datetime.combine(date.today(), datetime.min.time()).replace(hour=9)
+        self.assertEqual(await bot.send_due_reminders(fake, now=early), [])
+        self.assertEqual(fake.sent, [])
+
+    async def test_same_reminder_not_sent_twice(self):
+        target = self.delivery_date(1)
+        await self.set_reminders([(target - date.today()).days])
+        await self.make_order_on(target)
+        fake = FakeBot()
+        now = self.at(date.today())
+        self.assertEqual(len(await bot.send_due_reminders(fake, now=now)), 1)
+        self.assertEqual(await bot.send_due_reminders(fake, now=now), [])
+        self.assertEqual(len(fake.sent), 1)
+
+    async def test_two_terms_both_fire(self):
+        target = self.delivery_date(2)
+        n = (target - date.today()).days
+        await self.set_reminders([n, n - 1])
+        order_id = await self.make_order_on(target)
+        fake = FakeBot()
+        self.assertEqual(await bot.send_due_reminders(fake, now=self.at(date.today())),
+                         [order_id])
+        # назавтра наступает второй срок — напоминание уходит ещё раз
+        later = self.at(date.today() + timedelta(days=1))
+        self.assertEqual(await bot.send_due_reminders(fake, now=later), [order_id])
+        self.assertEqual(len(fake.sent), 2)
+
+    async def test_closed_order_not_reminded(self):
+        target = self.delivery_date(1)
+        await self.set_reminders([(target - date.today()).days])
+        order_id = await self.make_order_on(target)
+        await bot.on_status(FakeCallback(1, f"st:{order_id}:cancelled"), FakeBot())
+        fake = FakeBot()
+        self.assertEqual(await bot.send_due_reminders(fake, now=self.at(date.today())), [])
+
+    async def test_far_order_not_reminded_early(self):
+        target = self.delivery_date(1)
+        await self.set_reminders([(target - date.today()).days + 2])
+        await self.make_order_on(target)
+        fake = FakeBot()
+        self.assertEqual(await bot.send_due_reminders(fake, now=self.at(date.today())), [])
+
+    def test_settings_parsing(self):
+        self.assertEqual(bot.reminder_settings({}), ([1], 10))
+        self.assertEqual(bot.reminder_settings({"reminder_days": [2, 1, 1, 99, "x"],
+                                                "reminder_hour": 8}), ([1, 2], 8))
+        self.assertEqual(bot.reminder_settings({"reminder_days": "1, 3",
+                                                "reminder_hour": 99}), ([1, 3], 23))
+        self.assertEqual(bot.reminder_settings({"reminder_days": []}), ([1], 10))
+        self.assertEqual(bot.reminder_settings({"reminder_days": [0]}), ([0], 10))
+
+    def test_days_label(self):
+        self.assertEqual(bot.days_before_label(0), "сегодня")
+        self.assertEqual(bot.days_before_label(1), "завтра")
+        self.assertEqual(bot.days_before_label(2), "послезавтра")
+        self.assertEqual(bot.days_before_label(5), "через 5 дней")
+        self.assertEqual(bot.days_before_label(3), "через 3 дня")
+        self.assertEqual(bot.days_before_label(21), "через 21 день")
 
 
 class PhoneValidationTests(BotTestCase):

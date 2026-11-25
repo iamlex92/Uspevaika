@@ -18,7 +18,7 @@ import os
 import re
 import sqlite3
 import time
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Iterator
 
@@ -208,6 +208,16 @@ def init_db() -> None:
             user_id INTEGER PRIMARY KEY,
             name TEXT, username TEXT,
             added_by INTEGER, added_at INTEGER)""")
+        # Напоминания о заказах на будущие дни. Пара (заказ, «за сколько дней»)
+        # уникальна: даже после перезапуска бота одно напоминание не уйдёт
+        # дважды. День доставки храним отдельно — в настройках его можно
+        # поменять, а уже отправленное напоминание пересчитывать нельзя.
+        con.execute("""CREATE TABLE IF NOT EXISTS reminders(
+            order_id INTEGER NOT NULL,
+            days_before INTEGER NOT NULL,
+            deliver_date TEXT NOT NULL,
+            sent_at INTEGER NOT NULL,
+            PRIMARY KEY (order_id, days_before))""")
 
 
 # ---------- кто открыл витрину ----------
@@ -961,6 +971,147 @@ async def notify_admins(order: sqlite3.Row, bot: Bot | None = None) -> None:
             return
         except Exception as e:
             log.warning("админу %s не доставлено уведомление о заказе №%s: %s", uid, order["id"], e)
+
+
+# ---------- напоминания о заказах на будущие дни ----------
+# Заказ можно оформить за неделю вперёд, и к дню доставки о нём легко забыть.
+# Менеджеры получают напоминание в чат за N дней до доставки; N задаётся в
+# настройках (например, 1 и 2). Время суток одно общее: сам час настраивается.
+
+DEFAULT_REMINDER_DAYS = [1]
+DEFAULT_REMINDER_HOUR = 10
+
+
+def reminder_settings(settings: dict) -> tuple[list[int], int]:
+    """Дни до доставки и час напоминания из menu.json (с разумными пределами)."""
+    raw = settings.get("reminder_days", DEFAULT_REMINDER_DAYS)
+    days: list[int] = []
+    if isinstance(raw, (list, tuple)):
+        for v in raw:
+            try:
+                n = int(v)
+            except (TypeError, ValueError):
+                continue
+            if 0 <= n <= 30 and n not in days:
+                days.append(n)
+    elif isinstance(raw, str):
+        for part in re.split(r"[,\s]+", raw):
+            if part.isdigit() and 0 <= int(part) <= 30 and int(part) not in days:
+                days.append(int(part))
+    if not days:
+        days = list(DEFAULT_REMINDER_DAYS)
+    try:
+        hour = int(settings.get("reminder_hour", DEFAULT_REMINDER_HOUR))
+    except (TypeError, ValueError):
+        hour = DEFAULT_REMINDER_HOUR
+    return sorted(days), max(0, min(hour, 23))
+
+
+def days_before_label(n: int) -> str:
+    if n == 0:
+        return "сегодня"
+    if n == 1:
+        return "завтра"
+    if n == 2:
+        return "послезавтра"
+    last2 = n % 100
+    if last2 in (11, 12, 13, 14):
+        word = "дней"
+    elif n % 10 == 1:
+        word = "день"
+    elif n % 10 in (2, 3, 4):
+        word = "дня"
+    else:
+        word = "дней"
+    return f"через {n} {word}"
+
+
+def reminder_text(order: sqlite3.Row, days_before: int) -> str:
+    """Сообщение менеджерам: о каком заказе и на когда напоминание."""
+    who = html.escape(order["name"] or "")
+    phone = html.escape(order["phone"] or "")
+    address = html.escape(order["address"] or "")
+    lines = [
+        f"🔔 <b>Напоминание: заказ №{order['id']} {days_before_label(days_before)}</b>",
+        f"🕒 {human_date(order['date'])}, {html.escape(order['slot'] or '')}",
+        f"{who}, {phone} ({contact_label(order)})",
+        f"📍 {address}",
+        f"Оплата: {html.escape(order['payment'] or '')} · <b>{rub(order['total'])}</b>",
+    ]
+    return "\n".join(lines)
+
+
+async def _send_to_admins(bot: Bot, text: str, markup) -> bool:
+    """Отправляет в чат менеджеров, а если его нет — лично админам."""
+    if ADMIN_CHAT_ID:
+        try:
+            await bot.send_message(ADMIN_CHAT_ID, text, reply_markup=markup)
+            return True
+        except Exception as e:
+            log.error("не удалось отправить напоминание в чат менеджеров: %s", e)
+    for uid in ADMIN_IDS:
+        try:
+            await bot.send_message(uid, text, reply_markup=markup)
+            return True
+        except Exception as e:
+            log.warning("админу %s не доставлено напоминание: %s", uid, e)
+    return False
+
+
+async def send_due_reminders(bot: Bot, now: datetime | None = None) -> list[int]:
+    """Рассылает напоминания, срок которых наступил. Возвращает номера заказов.
+
+    Порядок: для каждого заказа из будущих дат (не отменённых и не доставленных)
+    проверяем, не пора ли напомнить за каждый из настроенных сроков. Отправленные
+    пары (заказ, срок) пишем в таблицу reminders — поэтому перезапуск бота и
+    повторный запуск проверки не приводят к дублям.
+
+    `now` подставляется тестами: иначе проверка зависела бы от текущего часа.
+    """
+    now = now or datetime.now()
+    try:
+        settings = store.read().get("settings") or {}
+    except MenuError as e:
+        log.warning("напоминания: меню недоступно: %s", e)
+        return []
+    days_list, hour = reminder_settings(settings)
+    if now.hour < hour:
+        return []                       # время рассылки ещё не наступило
+    today = now.date()
+
+    sent_ids: list[int] = []
+    with db() as con:
+        for days_before in days_list:
+            target = (today + timedelta(days=days_before)).isoformat()
+            rows = con.execute(
+                "SELECT * FROM orders WHERE date=? AND status NOT IN ('delivered','cancelled')"
+                " AND NOT EXISTS (SELECT 1 FROM reminders r"
+                "                 WHERE r.order_id=orders.id AND r.days_before=?)",
+                (target, days_before)).fetchall()
+            for order in rows:
+                ok = await _send_to_admins(bot, reminder_text(order, days_before),
+                                           admin_kb(order["id"], order["status"]))
+                if not ok:
+                    continue             # попробуем в следующий проход
+                con.execute("INSERT OR IGNORE INTO reminders"
+                            "(order_id, days_before, deliver_date, sent_at) VALUES(?,?,?,?)",
+                            (order["id"], days_before, target, int(time.time())))
+                sent_ids.append(order["id"])
+                log.info("напоминание о заказе №%s отправлено (за %s дн.)",
+                         order["id"], days_before)
+    return sent_ids
+
+
+async def reminder_loop(bot: Bot, interval: int = 60) -> None:
+    """Проверка напоминаний раз в минуту — без отдельного планировщика."""
+    while True:
+        try:
+            await send_due_reminders(bot)
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:          # сбой не должен останавливать бота
+            log.exception("напоминания: ошибка проверки: %s", e)
+        await asyncio.sleep(interval)
 
 
 def save_order(user_id: int, username: str | None, data: dict, lines: list[dict],
@@ -2008,7 +2159,13 @@ async def main():
                 BotCommand(command="admins", description="Менеджеры"),
             ])
         await bot.set_my_commands(commands)
-        await dp.start_polling(bot)
+        reminders = asyncio.create_task(reminder_loop(bot))
+        try:
+            await dp.start_polling(bot)
+        finally:
+            reminders.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await reminders
     finally:
         await bot.session.close()
         await runner.cleanup()

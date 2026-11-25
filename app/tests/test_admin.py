@@ -618,6 +618,19 @@ class MenuTests(AdminTestCase):
         self.assertEqual(s["delivery_days"], ["вторник", "четверг"])
         self.assertEqual(s["delivery_zones"][0]["price"], 300)
 
+    async def test_reminder_settings_saved(self):
+        r = await self.post("/api/admin/settings", json={
+            "reminder_days": [2, 1, 1, 45, "x"], "reminder_hour": 30})
+        self.assertEqual(r.status, 200)
+        s = self.menu()["settings"]
+        self.assertEqual(s["reminder_days"], [1, 2])   # мусор и повторы отброшены
+        self.assertEqual(s["reminder_hour"], 23)       # час ограничен сутками
+
+    async def test_reminder_day_zero_allowed(self):
+        # 0 — напоминание в день доставки
+        await self.post("/api/admin/settings", json={"reminder_days": [0, 1]})
+        self.assertEqual(self.menu()["settings"]["reminder_days"], [0, 1])
+
 
 class OrderAdminTests(AdminTestCase):
     async def asyncSetUp(self):

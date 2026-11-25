@@ -1250,6 +1250,19 @@ function renderSettings() {
             <label>Бесплатно от, ₽<input name="free_delivery_from" inputmode="numeric" value="${esc(s.free_delivery_from || 0)}"></label>
             <label>Дней вперёд<input name="delivery_days_ahead" inputmode="numeric" value="${esc(s.delivery_days_ahead || 7)}"></label>
           </div>
+          <div class="row c2">
+            <label>Напоминать о заказе за, дней
+              <input name="reminder_days" inputmode="numeric"
+                value="${esc((s.reminder_days == null ? [1] : s.reminder_days).join(', '))}"
+                placeholder="1, 2"></label>
+            <label>Час напоминания
+              <input name="reminder_hour" inputmode="numeric"
+                value="${esc(s.reminder_hour == null ? 10 : s.reminder_hour)}"></label>
+          </div>
+          <div class="muted" style="font-size:12px;margin:-4px 0 4px">
+            Напоминание приходит в чат менеджеров за указанное число дней до доставки.
+            Можно перечислить несколько сроков через запятую; 0 — в день доставки.
+          </div>
           <label>Дни доставки (через запятую)
             <input name="delivery_days" value="${esc((s.delivery_days || []).join(', '))}"></label>
           <label>Интервалы (через запятую)
@@ -1314,6 +1327,8 @@ function renderSettings() {
     payload.delivery_days = String(payload.delivery_days || '').split(',').map(x => x.trim()).filter(Boolean);
     payload.delivery_slots = String(payload.delivery_slots || '').split(',').map(x => x.trim()).filter(Boolean);
     payload.payment_methods = String(payload.payment_methods || '').split(',').map(x => x.trim()).filter(Boolean);
+    payload.reminder_days = String(payload.reminder_days || '').split(',')
+      .map(x => Number(x.trim())).filter(x => Number.isInteger(x) && x >= 0 && x <= 30);
     payload.delivery_zones = zones.filter(z => z.title).map(z => ({
       title: z.title, free_from: Number(z.free_from) || 0, price: Number(z.price) || 0,
       ...(Number(z.min_sum) ? { min_sum: Number(z.min_sum) } : {})

@@ -22,6 +22,8 @@
       "Воскресенье"
     ],
     "delivery_days_ahead": 7,
+    "reminder_days": [1],
+    "reminder_hour": 10,
     "delivery_zones": [
       {
         "title": "Железнодорожный, Советский, Центральный",
