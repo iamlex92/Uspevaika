@@ -65,7 +65,7 @@ current_version() {
     tr -d '[:space:]' < "$APP_DIR/VERSION"
   elif curl -fsS -m 5 http://127.0.0.1:8080/healthz 2>/dev/null | grep -q version; then
     curl -fsS -m 5 http://127.0.0.1:8080/healthz 2>/dev/null \
-      | sed -n 's/.*"version":"\([^"]*\)".*/\1/p'
+      | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'
   else
     echo "0.0.0"
   fi
@@ -195,7 +195,9 @@ for i in $(seq 1 15); do
 done
 
 if [ "$alive" = "1" ]; then
-  running="$(curl -fsS http://127.0.0.1:8080/healthz | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')"
+  # aiohttp отдаёт JSON с пробелом после двоеточия: "version": "1.0.0"
+  running="$(curl -fsS http://127.0.0.1:8080/healthz \
+             | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
   if [ -n "$running" ] && [ "$running" = "$new_version" ]; then
     ok "бот работает, версия $running"
   else

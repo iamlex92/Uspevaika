@@ -96,23 +96,33 @@ fi
 
 hdr "6. Что отдаётся снаружи"
 if [ -n "$DOMAIN" ]; then
-  body=$(curl -s -m 10 -H "Host: ${DOMAIN}" "http://127.0.0.1/" 2>/dev/null | head -c 400)
+  # Проверяем через реальный домен: Caddy держит 80 для редиректа на https,
+  # а сайт отдаёт по TLS. Запрос к 127.0.0.1 по http вернул бы пустоту
+  # даже на полностью рабочей установке.
+  body=$(curl -sk -m 12 "https://${DOMAIN}/" 2>/dev/null | head -c 600)
+  if [ -z "$body" ]; then
+    # https не ответил — пробуем http, там хотя бы видно заглушку прокси
+    body=$(curl -s -m 8 -H "Host: ${DOMAIN}" "http://127.0.0.1/" 2>/dev/null | head -c 400)
+  fi
+
   if printf '%s' "$body" | grep -qi "Welcome to nginx"; then
     bad_ "отдаётся заглушка nginx — конфиг сайта не подключён"
+    note "sudo rm -f /etc/nginx/sites-enabled/default && sudo systemctl reload nginx"
   elif printf '%s' "$body" | grep -qi "Успевайка"; then
     good "по домену ${DOMAIN} отдаётся витрина"
   elif [ -z "$body" ]; then
     bad_ "пустой ответ по домену ${DOMAIN}"
+    note "проверьте: sudo journalctl -u caddy -n 20  (или -u nginx)"
   else
     note "ответ не похож ни на витрину, ни на заглушку"
   fi
 
-  https=$(curl -s -o /dev/null -w '%{http_code}' -m 12 "https://${DOMAIN}/healthz" 2>/dev/null || echo 000)
+  https=$(curl -sk -o /dev/null -w '%{http_code}' -m 15 "https://${DOMAIN}/healthz" 2>/dev/null || echo 000)
   if [ "$https" = "200" ]; then
     good "HTTPS работает"
   else
     bad_ "HTTPS не отвечает (код ${https})"
-    note "сертификат: sudo certbot --nginx -d ${DOMAIN}  (или используйте Caddy)"
+    note "сертификат: sudo certbot --nginx -d ${DOMAIN}  (или перезапустите Caddy)"
   fi
 else
   note "домен не указан — пропускаю. Запустите: sudo ./doctor.sh ВАШ_ДОМЕН"
