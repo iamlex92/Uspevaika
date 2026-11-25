@@ -1,0 +1,37 @@
+[Unit]
+Description=Uspevaika bot (Telegram Mini App, orders, admin panel)
+Documentation=file:///opt/uspevaika/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=uspevaika
+Group=uspevaika
+WorkingDirectory=/opt/uspevaika
+EnvironmentFile=/opt/uspevaika/.env
+# start.sh ищет окружение сам; вызываем python напрямую, чтобы systemd видел процесс
+ExecStart=/opt/uspevaika/.venv/bin/python /opt/uspevaika/bot.py
+
+# Перезапуск при падении: сеть отвалилась, Telegram недоступен — поднимаемся сами
+Restart=always
+RestartSec=5
+
+# Остановка по SIGTERM: бот дописывает начатые заказы и закрывает соединения
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# Логи в journalctl -u uspevaika
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=uspevaika
+
+# Безопасность: боту нужен только свой каталог и сеть
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/uspevaika
+
+[Install]
+WantedBy=multi-user.target

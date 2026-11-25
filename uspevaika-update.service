@@ -1,0 +1,22 @@
+[Unit]
+Description=Uspevaika auto-update (check GitHub releases and install)
+Documentation=file:///opt/uspevaika/DOCS.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/uspevaika
+ExecStart=/opt/uspevaika/autoupdate.sh
+
+# Обновление идёт минуту-две: не даём systemd убить его на середине
+TimeoutStartSec=600
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=uspevaika-update
+
+# Пишем в /var/lib (рабочая папка автообновления) и меняем /opt
+ReadWritePaths=/opt/uspevaika /var/lib/uspevaika-update
+ProtectHome=true

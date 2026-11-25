@@ -1,0 +1,1207 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5d6237">
+<title>Успевайка — домашние полуфабрикаты</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#fdf8f1; --bg-soft:#f7efe3; --surface:#fff; --surface-2:#fdf8f1;
+  --ink:#2a2d21; --ink-soft:#4a4f3c; --muted:#8a8a76; --line:#e9e1d2;
+  --olive:#5d6237; --olive-d:#4a4e2c; --olive-soft:#eef0e2;
+  --coral:#c0623c; --coral-soft:#fbe9e0;
+  --ok:#4e7a3f; --warn:#b8651f; --danger:#b0442c;
+  --shadow:0 1px 2px rgba(74,79,60,.05), 0 6px 20px rgba(74,79,60,.07);
+  --shadow-lg:0 8px 40px rgba(74,79,60,.16);
+  --r:18px; --r-sm:12px;
+  --f-body:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+html.dark{
+  --bg:#15170f; --bg-soft:#1c1f14; --surface:#1e2116; --surface-2:#242819;
+  --ink:#f0eddc; --ink-soft:#cfccb6; --muted:#94917a; --line:#333823;
+  --olive:#b9c07d; --olive-d:#a3ab66; --olive-soft:#242819;
+  --coral:#e8895f; --coral-soft:#33241c;
+  --ok:#8fbd76; --warn:#d99a4e; --danger:#e2836a;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+  --shadow-lg:0 8px 40px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:contain}
+body{overflow-x:hidden}
+img{display:block}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2.5px solid var(--coral);outline-offset:2px;border-radius:6px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.app{max-width:600px;margin:0 auto;padding:10px 14px 110px;overflow-x:clip}
+
+/* ---------- шапка ---------- */
+.hero{position:relative;border-radius:22px;padding:16px 18px 18px;background:
+  radial-gradient(120% 120% at 85% 0%, rgba(255,255,255,.55), transparent 55%),
+  linear-gradient(150deg, #eef0e2 0%, #f5efdf 55%, #fbeee0 100%);
+  border:1px solid var(--line);overflow:hidden;margin-bottom:14px}
+html.dark .hero{background:
+  radial-gradient(120% 120% at 85% 0%, rgba(185,192,125,.10), transparent 55%),
+  linear-gradient(150deg,#20241a 0%,#1d2015 55%,#251d16 100%)}
+.hero-top{display:flex;align-items:center;gap:12px}
+.logo{width:88px;height:auto;flex:none}
+.hero h1{font-size:20px;line-height:1.15;margin:0 0 2px;font-weight:800;letter-spacing:-.02em}
+.hero .slogan{font-size:12.5px;color:var(--ink-soft)}
+.hero .city{font-size:12px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ok);display:inline-block;flex:none}
+.perks{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}
+.perk{font-size:11px;font-weight:600;background:rgba(255,255,255,.75);color:var(--ink-soft);
+  padding:5px 9px;border-radius:999px;border:1px solid rgba(93,98,55,.12);line-height:1.3;
+  min-width:0;max-width:100%;overflow-wrap:anywhere}
+html.dark .perk{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.07)}
+
+/* ---------- поиск ---------- */
+.search{position:relative;margin-bottom:12px}
+.search input{padding-left:40px;background:var(--surface);box-shadow:var(--shadow)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search .clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;
+  border-radius:50%;color:var(--muted);display:grid;place-items:center;font-size:17px}
+
+/* ---------- категории ---------- */
+.tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px;
+  position:sticky;top:0;background:var(--bg);z-index:20;
+  margin:0 -14px;padding-left:14px;padding-right:14px;scroll-padding-left:14px;
+  -webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;background:var(--surface);
+  border:1px solid var(--line);font-weight:600;font-size:13px;white-space:nowrap;transition:.15s;flex:none}
+.tab .ic{opacity:.85}
+.tab .n{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tab.on{background:var(--olive);border-color:var(--olive);color:#fff;box-shadow:0 3px 12px rgba(93,98,55,.28)}
+.tab.on .n{color:rgba(255,255,255,.7)}
+
+/* ---------- каталог ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:11px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:var(--shadow);transition:.18s;position:relative}
+.card.off{opacity:.62}
+.card.off .pic img{filter:grayscale(.5)}
+@media (hover:hover){.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}}
+.pic{position:relative;aspect-ratio:4/3;background:var(--bg-soft);overflow:hidden;display:block;width:100%}
+.pic img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.pic::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(20,22,14,.28))}
+@media (hover:hover){.card:hover .pic img{transform:scale(1.045)}}
+.badge{position:absolute;top:8px;left:8px;z-index:2;font-size:10.5px;font-weight:800;letter-spacing:.02em;
+  padding:3px 8px;border-radius:8px;background:var(--coral);color:#fff;box-shadow:0 2px 8px rgba(192,98,60,.35)}
+.badge.hit{background:#fff;color:var(--olive-d)}
+html.dark .badge.hit{background:var(--olive);color:#15170f}
+.badge.pre{background:#3f4a6b}
+.off-tag{position:absolute;inset:0;z-index:2;display:grid;place-items:center;background:rgba(253,248,241,.78);
+  color:var(--ink-soft);font-weight:700;font-size:13px;backdrop-filter:blur(2px)}
+html.dark .off-tag{background:rgba(21,23,15,.72)}
+.cb{padding:11px 12px 12px;display:flex;flex-direction:column;gap:4px;flex:1}
+.ct{font-weight:700;font-size:14px;line-height:1.28;text-align:left;padding:0;letter-spacing:-.01em}
+.cm{font-size:11.5px;color:var(--muted)}
+.left{font-size:11px;color:var(--coral);font-weight:700}
+.cf{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:9px;gap:8px}
+.price{font-weight:800;font-size:16px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.price small{font-size:11px;font-weight:600;color:var(--muted)}
+.add{background:var(--olive);color:#fff;font-weight:700;border-radius:11px;min-width:38px;height:34px;
+  padding:0 12px;font-size:19px;line-height:1;display:grid;place-items:center;transition:.15s}
+.add:active{transform:scale(.93)}
+.qty{display:flex;align-items:center;gap:2px;background:var(--olive-soft);border-radius:11px;height:34px;padding:0 3px;
+  font-weight:800;font-variant-numeric:tabular-nums;color:var(--olive-d)}
+.qty button{width:28px;height:28px;border-radius:9px;font-weight:700;font-size:17px;line-height:1;display:grid;place-items:center;
+  color:var(--olive-d)}
+.qty button:active{background:rgba(93,98,55,.16)}
+.qty button:disabled{opacity:.35;cursor:not-allowed}
+.qty button:disabled:active{background:none}
+.qty span{min-width:18px;text-align:center;font-size:14px}
+.na{font-size:11.5px;color:var(--muted);font-weight:700}
+
+.empty{grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--muted)}
+.empty .big-emoji{font-size:38px;margin-bottom:8px}
+
+/* ---------- скелетон ---------- */
+.sk{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.sk .sp{aspect-ratio:4/3;background:linear-gradient(90deg,var(--bg-soft) 25%,var(--surface) 50%,var(--bg-soft) 75%);
+  background-size:200% 100%;animation:sh 1.3s infinite}
+.sk .sl{height:12px;border-radius:6px;margin:10px 12px;background:var(--bg-soft);animation:sh 1.3s infinite;
+  background:linear-gradient(90deg,var(--bg-soft) 25%,var(--surface) 50%,var(--bg-soft) 75%);background-size:200% 100%}
+.sk .sl.s{width:55%}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ---------- корзина-бар ---------- */
+.cartbar{position:fixed;left:0;right:0;bottom:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(transparent,var(--bg) 34%);z-index:30}
+.cartbar button{width:100%;max-width:572px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;
+  background:var(--olive);color:#fff;font-weight:700;border-radius:16px;padding:15px 18px;
+  box-shadow:0 8px 28px rgba(74,79,60,.32);font-variant-numeric:tabular-nums;transition:.15s}
+.cartbar button:active{transform:scale(.985)}
+.cartbar .l{display:flex;align-items:center;gap:9px}
+.cartbar .cnt{background:rgba(255,255,255,.2);border-radius:8px;padding:1px 7px;font-size:12px}
+
+/* ---------- шторка блюда ---------- */
+.veil{position:fixed;inset:0;background:rgba(24,26,16,.5);z-index:40;display:flex;align-items:flex-end;
+  justify-content:center;backdrop-filter:blur(3px);animation:fade .18s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--surface);width:100%;max-width:600px;border-radius:24px 24px 0 0;
+  padding:0 0 calc(18px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow-y:auto;
+  animation:up .24s cubic-bezier(.2,.9,.3,1);position:relative}
+@keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-pic{position:relative;aspect-ratio:16/10;background:var(--bg-soft);overflow:hidden}
+.sheet-pic img{width:100%;height:100%;object-fit:cover}
+.sheet-close{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.92);color:#2a2d21;display:grid;place-items:center;font-size:19px;
+  box-shadow:0 2px 12px rgba(0,0,0,.18);z-index:3}
+.sheet-body{padding:16px 18px 0;display:grid;gap:12px}
+.sheet h2{font-size:20px;margin:0;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.sheet .desc{margin:0;color:var(--ink-soft);font-size:14px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}
+.fact{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:9px 11px}
+.fact dt{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:1px}
+.fact dd{margin:0;font-size:13px;font-weight:600;line-height:1.3}
+.sheet-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px}
+.sheet-foot .price{font-size:23px}
+
+/* ---------- оформление ---------- */
+.back{display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--olive);padding:6px 0;font-size:14px}
+h1.page{font-size:22px;margin:2px 0 4px;font-weight:800;letter-spacing:-.02em}
+.sub{font-size:13px;color:var(--muted);margin:0 0 14px}
+.block{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  margin-bottom:12px;overflow:hidden}
+.block-h{padding:12px 16px 8px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);display:flex;align-items:center;gap:7px}
+.lines{padding:0 16px}
+.line{display:grid;grid-template-columns:52px 1fr auto;gap:11px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.line:first-child{border-top:0}
+.line img{width:52px;height:52px;border-radius:11px;object-fit:cover;background:var(--bg-soft)}
+.line .t{font-weight:700;font-size:13.5px;line-height:1.25}
+.line .s{font-size:12px;color:var(--muted);margin-top:1px}
+.line .rt{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.line .price{font-size:14px}
+.line .qty{height:30px}
+.line .qty button{width:24px;height:24px;font-size:15px}
+.line .qty span{font-size:13px;min-width:16px}
+.sum{padding:6px 16px 14px;display:grid;grid-template-columns:1fr auto;gap:5px;font-size:13.5px;
+  font-variant-numeric:tabular-nums;border-top:1px solid var(--line);margin-top:4px;padding-top:12px}
+.sum .m{color:var(--muted)}
+.sum .total{font-weight:800;font-size:17px;padding-top:5px;border-top:1px dashed var(--line);margin-top:4px}
+.sum .free{color:var(--ok);font-weight:700}
+.warn{margin:0 16px 14px;padding:9px 12px;border-radius:11px;background:var(--coral-soft);color:var(--danger);
+  font-size:12.5px;font-weight:600;line-height:1.35}
+
+form{display:grid;gap:12px}
+label{display:grid;gap:5px;font-size:12.5px;color:var(--muted);font-weight:600}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);
+  border-radius:var(--r-sm);padding:12px 13px;width:100%;transition:.15s;font-family:inherit}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
+input:focus,select:focus,textarea:focus{border-color:var(--olive);outline:none;box-shadow:0 0 0 3px rgba(93,98,55,.12)}
+textarea{min-height:66px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.slots{display:flex;flex-wrap:wrap;gap:7px}
+.slot svg{vertical-align:-1px;margin-right:2px}
+.slot{padding:9px 13px;border-radius:11px;border:1.5px solid var(--line);font-size:13.5px;background:var(--surface);
+  font-weight:600;transition:.15s}
+.slot.on{border-color:var(--olive);background:var(--olive-soft);color:var(--olive-d);font-weight:800}
+.slot:active{transform:scale(.97)}
+.days{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.days::-webkit-scrollbar{display:none}
+.day{flex:none;min-width:66px;padding:9px 6px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);
+  text-align:center;transition:.15s}
+.day .w{font-size:10.5px;color:var(--muted);text-transform:capitalize;font-weight:600}
+.day .d{font-size:16px;font-weight:800;line-height:1.2;letter-spacing:-.02em}
+.day .mo{font-size:10px;color:var(--muted)}
+.day.on{border-color:var(--olive);background:var(--olive);color:#fff}
+.day.on .w,.day.on .mo{color:rgba(255,255,255,.8)}
+.save-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);padding:0 2px}
+.save-row input{width:17px;height:17px;accent-color:var(--olive);flex:none}
+.err{padding:10px 13px;border-radius:11px;background:var(--coral-soft);color:var(--danger);font-size:13px;font-weight:600}
+.big{width:100%;background:var(--olive);color:#fff;font-weight:800;border-radius:15px;padding:16px;font-size:15.5px;
+  box-shadow:0 6px 22px rgba(74,79,60,.28);transition:.15s}
+.big:active{transform:scale(.99)}
+.ghost{width:100%;border:1.5px solid var(--line);border-radius:15px;padding:14px;font-weight:700;background:var(--surface)}
+.notice{display:flex;gap:9px;padding:11px 13px;border-radius:12px;background:var(--olive-soft);
+  font-size:12.5px;color:var(--ink-soft);line-height:1.4}
+.notice b{color:var(--ink)}
+
+/* ---------- готово ---------- */
+.done{display:grid;gap:14px;text-align:center;padding:34px 6px 0}
+.done .mark{width:76px;height:76px;border-radius:50%;background:var(--olive-soft);color:var(--ok);
+  display:grid;place-items:center;margin:0 auto;font-size:36px}
+.done p{margin:0;color:var(--ink-soft);font-size:14px}
+.done .doneNum{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.done .doneSum{font-size:15px;font-weight:700;color:var(--olive-d)}
+pre{white-space:pre-wrap;word-break:break-word;font-size:11px;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:12px;text-align:left;color:var(--muted);max-height:220px;overflow:auto}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:18px;line-height:1.6}
+.foot a{color:var(--olive);font-weight:700;text-decoration:none}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(10px);background:var(--ink);color:var(--bg);
+  padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:60;opacity:0;pointer-events:none;
+  transition:.22s;box-shadow:var(--shadow-lg);max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ======== КАТАЛОГ ======== -->
+  <section id="catalog">
+    <header class="hero">
+      <div class="hero-top">
+        <img src="img/logo@2x.webp" alt="Успевайка" class="logo" width="88" height="52">
+        <div>
+          <h1>Успевайка</h1>
+          <div class="slogan">Готовим мы. Живёте вы.</div>
+          <div class="city"><span class="dot"></span><span id="cityHint">Красноярск</span></div>
+        </div>
+      </div>
+      <div class="perks" id="perks"></div>
+    </header>
+
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Найти блюдо — сырники, суп…" aria-label="Поиск по меню" autocomplete="off">
+      <button class="clear" id="qClear" type="button" aria-label="Очистить поиск" hidden>✕</button>
+    </div>
+
+    <nav class="tabs" id="tabs" aria-label="Категории"></nav>
+    <div class="grid" id="grid" aria-live="polite"></div>
+    <p class="foot" id="foot"></p>
+  </section>
+
+  <!-- ======== ОФОРМЛЕНИЕ ======== -->
+  <section id="checkout" hidden>
+    <button class="back" id="backBtn" type="button">← В меню</button>
+    <h1 class="page">Ваш заказ</h1>
+    <p class="sub" id="checkoutSub"></p>
+
+    <div class="block">
+      <div class="block-h">Состав заказа</div>
+      <div class="lines" id="lines"></div>
+      <div class="sum" id="sum"></div>
+      <div class="warn" id="minWarn" hidden></div>
+    </div>
+
+    <form id="form" novalidate>
+      <div class="block">
+        <div class="block-h">Контакты</div>
+        <div style="padding:4px 16px 14px;display:grid;gap:12px">
+          <div class="two">
+            <label for="f-name">Имя<input id="f-name" name="name" autocomplete="given-name" placeholder="Анна" required></label>
+            <label for="f-phone">Телефон<input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 900 000-00-00" required></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-h">Доставка</div>
+        <div style="padding:4px 16px 14px;display:grid;gap:12px">
+          <label for="f-address">Адрес<input id="f-address" name="address" placeholder="Улица, дом, квартира, подъезд" required></label>
+          <label for="f-zone">Район<select id="f-zone" name="zone"></select></label>
+          <div>
+            <label id="dayLabel">День доставки</label>
+            <div class="days" id="days" role="radiogroup" aria-labelledby="dayLabel"></div>
+          </div>
+          <div>
+            <label id="slotLabel">Время</label>
+            <div class="slots" id="slots" role="radiogroup" aria-labelledby="slotLabel"></div>
+          </div>
+          <label for="f-pay">Оплата<select id="f-pay" name="payment"></select></label>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-h">Комментарий</div>
+        <div style="padding:4px 16px 14px">
+          <label for="f-comment" class="sr">Комментарий к заказу</label>
+          <textarea id="f-comment" name="comment" placeholder="Позвонить за 30 минут, домофон не работает…" maxlength="500"></textarea>
+        </div>
+      </div>
+
+      <div class="err" id="formErr" hidden></div>
+      <button class="big" id="submitBtn" type="submit">Оформить заказ</button>
+      <p class="sub" id="submitHint" style="text-align:center;margin:0">Менеджер подтвердит заказ и напишет вам в Telegram</p>
+    </form>
+    <button class="big" id="emptyBack" type="button" hidden>Перейти в меню</button>
+  </section>
+
+  <!-- ======== ГОТОВО ======== -->
+  <section id="done" class="done" hidden>
+    <div class="mark">✓</div>
+    <h1 class="page" style="margin:0">Заказ принят</h1>
+    <p class="doneNum" id="doneOrder" hidden></p>
+    <p class="doneSum" id="doneTotal" hidden></p>
+    <p id="doneHint">Менеджер свяжется с вами, чтобы подтвердить заказ. Это окно можно закрыть.</p>
+    <button class="ghost" type="button" id="againBtn">Вернуться в меню</button>
+  </section>
+</div>
+
+<div class="veil" id="veil" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" id="sheet"></div>
+</div>
+
+<div class="cartbar" id="cartbar" hidden>
+  <button type="button" id="cartBtn">
+    <span class="l"><span>Корзина</span><span class="cnt" id="cartCount"></span></span>
+    <span id="cartSum"></span>
+  </button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+  // initData Telegram кладёт в хэш адреса ещё до загрузки SDK. Если скрипт с
+  // telegram.org не загрузился (бывает при недоступном telegram.org), объект
+  // WebApp не появится — но заказ всё равно пришёл из Telegram, и сервер сможет
+  // проверить подпись и узнать, кто его оформил.
+  const initDataFromHash = () => {
+    try {
+      const p = new URLSearchParams(location.hash.replace(/^#/, ''));
+      return p.get('tgWebAppData') || '';
+    } catch (e) { return ''; }
+  };
+  const tgSdk = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  const tg = tgSdk && tgSdk.initData ? tgSdk : null;
+  const TG_INIT_DATA = (tg ? tg.initData : '') || initDataFromHash();
+
+  // Бот кладёт в ссылку подписанный токен пользователя (параметр u). Это
+  // единственный надёжный способ узнать клиента: на iOS initData часто не
+  // передаётся вовсе, и без токена заказ записывался как «с сайта».
+  const URL_PARAMS = new URLSearchParams(location.search);
+  const USER_TOKEN = URL_PARAMS.get('u') || '';
+
+  // кто открыл витрину — для подстановки имени и уведомлений о статусе;
+  // в токене только id, имя приходит из initData
+  let tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || null;
+  if (!tgUser && TG_INIT_DATA) {
+    try { tgUser = JSON.parse(new URLSearchParams(TG_INIT_DATA).get('user') || 'null'); } catch (e) {}
+  }
+  const LINK_USER_ID = USER_TOKEN ? USER_TOKEN.split('.')[0] : '';
+  const FROM_TELEGRAM = !!tgUser || !!LINK_USER_ID;
+
+  if (tg) {
+    tg.ready(); tg.expand();
+    if (tg.colorScheme === 'dark') document.documentElement.classList.add('dark');
+    try { tg.setHeaderColor('#fdf8f1'); tg.setBackgroundColor('#fdf8f1'); } catch (e) {}
+    if (tg.colorScheme === 'dark') { try { tg.setHeaderColor('#15170f'); tg.setBackgroundColor('#15170f'); } catch (e) {} }
+  } else if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.classList.add('dark');
+  }
+
+  const $ = id => document.getElementById(id);
+  const rub = n => n.toLocaleString('ru-RU') + ' ₽';
+  const plural = (n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); };
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  const haptic = (kind) => { try { tg && (kind === 'err' ? tg.HapticFeedback.notificationOccurred('error') : tg.HapticFeedback.selectionChanged()); } catch (e) {} };
+
+  let MENU = null, cat = null, slot = null, day = null, query = '';
+  let sheetOpener = null;          // элемент, вернувший фокус после закрытия шторки
+  const cart = new Map(); // id -> qty
+  const CART_KEY = 'uspevaika_cart_v2';
+  const CONTACT_KEY = 'uspevaika_contact';
+
+  // Корзина живёт в браузере и ничего не резервирует: остаток списывается
+  // только при оформлении. Поэтому брошенная корзина ничего не блокирует —
+  // но и копить её неделями незачем: остатки за это время устареют, и человек
+  // будет оформлять заказ по несуществующему наличию.
+  const CART_TTL_MS = 20 * 60 * 1000;        // 20 минут
+  const CART_SEEN_KEY = 'uspevaika_cart_seen';   // последняя активность
+
+  function cartExpired() {
+    try {
+      const last = Number(localStorage.getItem(CART_SEEN_KEY) || 0);
+      return last > 0 && Date.now() - last > CART_TTL_MS;
+    } catch (e) { return false; }
+  }
+
+  function clearCart(reason) {
+    if (!cart.size) return false;
+    cart.clear();
+    saveCart();
+    try { localStorage.removeItem(CART_SEEN_KEY); } catch (e) {}
+    if (reason) toast(reason);
+    return true;
+  }
+
+  // Отметка активности: обновляется на каждое действие с корзиной. Сохраняем
+  // не чаще раза в 10 секунд, чтобы не дёргать localStorage на каждый «+».
+  let lastSeenSave = 0;
+  function touchCart(force) {
+    const now = Date.now();
+    if (!force && now - lastSeenSave < 10000) return;
+    lastSeenSave = now;
+    try { localStorage.setItem(CART_SEEN_KEY, String(now)); } catch (e) {}
+  }
+
+  try { JSON.parse(localStorage.getItem(CART_KEY) || '[]').forEach(([id, q]) => cart.set(id, q)); } catch (e) {}
+  let staleCart = false;
+  if (cart.size && cartExpired()) {      // корзина простояла дольше 20 минут
+    cart.clear();
+    try { localStorage.removeItem(CART_KEY); } catch (e) {}
+    staleCart = true;
+  }
+  try {
+    if (!localStorage.getItem(CART_SEEN_KEY)) localStorage.setItem(CART_SEEN_KEY, String(Date.now()));
+  } catch (e) {}
+
+  const saveCart = () => {
+    try { localStorage.setItem(CART_KEY, JSON.stringify([...cart])); } catch (e) {}
+    touchCart();
+  };
+
+  const byId = id => MENU && MENU.items.find(i => i.id === id);
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 1900);
+  }
+
+  /* ---------- деньги ---------- */
+  function zones() { return (MENU && MENU.settings.delivery_zones) || []; }
+  function currentZone() {
+    const sel = $('f-zone');
+    const z = zones()[sel ? sel.selectedIndex : 0];
+    return z || { free_from: MENU.settings.free_delivery_from, price: MENU.settings.delivery_price, title: '' };
+  }
+  function totals() {
+    let goods = 0, count = 0;
+    for (const [id, q] of cart) { const it = byId(id); if (it) { goods += it.price * q; count += q; } }
+    const s = MENU.settings;
+    const z = zones().length ? currentZone() : { free_from: s.free_delivery_from, price: s.delivery_price };
+    const freeFrom = z.free_from || s.free_delivery_from;
+    const delivery = goods === 0 || goods >= freeFrom ? 0 : (z.price || s.delivery_price);
+    return { goods, count, delivery, total: goods + delivery, freeFrom };
+  }
+
+  /* ---------- корзина ---------- */
+  // Раньше количество молча обрезалось до остатка: «+» переставал работать, и
+  // клиент не понимал почему. Теперь причина называется словами.
+  const limitNotice = {};               // id → время последнего сообщения
+
+  function setQty(id, q, silent) {
+    const it = byId(id); if (!it) return;
+    const want = q;
+    q = Math.max(0, Math.min(q, it.stock));
+    if (want > it.stock && !silent) {
+      haptic('err');
+      // одно и то же не повторяем: иначе при нескольких нажатиях подряд
+      // сообщение висит на экране и мешает
+      const now = Date.now();
+      if (!limitNotice[id] || now - limitNotice[id] > 2500) {
+        limitNotice[id] = now;
+        toast(it.stock <= 0
+          ? `«${it.title}» закончилось`
+          : `Больше ${it.stock} ${plural(it.stock, 'порции', 'порций', 'порций')} нет в наличии`);
+      }
+    }
+    if (q === 0) cart.delete(id); else cart.set(id, q);
+    saveCart(); if (!silent) haptic();
+
+    if (!$('catalog').hidden) {
+      // На каталоге правим только свою карточку: пересборка всей сетки
+      // заставляла браузер заново грузить все фото — меню моргало.
+      if (!updateCard(id)) renderCatalog();
+      renderCartBar();
+    } else {
+      render(false);          // оформление: там своя отрисовка
+    }
+  }
+
+  function qtyControl(it) {
+    const q = cart.get(it.id) || 0;
+    if (it.stock <= 0) return `<span class="na">Нет в наличии</span>`;
+    if (!q) return `<button class="add" data-add="${it.id}" aria-label="Добавить «${esc(it.title)}» в корзину">+</button>`;
+    // Дошли до остатка — «+» гаснет и подписан, чтобы предел был очевиден
+    const full = q >= it.stock;
+    return `<span class="qty"><button data-dec="${it.id}" aria-label="Убрать одну порцию">−</button>
+      <span>${q}</span>
+      <button data-inc="${it.id}" ${full ? 'disabled aria-disabled="true" title="Больше нет в наличии"' : 'aria-label="Добавить ещё одну"'}>+</button></span>`;
+  }
+
+  function badgeHtml(it) {
+    if (!it.badge) return '';
+    const cls = it.badge === 'Хит' ? ' hit' : (it.badge === 'Предзаказ' ? ' pre' : '');
+    return `<span class="badge${cls}">${esc(it.badge)}</span>`;
+  }
+
+  // Битая ссылка на фото показывала «разорванный» значок. Подставляем нейтральную
+  // заглушку один раз: если и она не загрузится, прячем картинку совсем, чтобы
+  // не было бесконечного цикла onerror.
+  const FALLBACK_PIC = 'img/fallback.webp';
+  function imgError(el) {
+    if (el.dataset.fallback) { el.style.visibility = 'hidden'; return; }
+    el.dataset.fallback = '1';
+    el.removeAttribute('srcset');
+    el.src = FALLBACK_PIC;
+  }
+
+  function picHtml(it, lazy) {
+    const src = it.image ? esc(it.image) : '';
+    const retina = src ? src.replace(/\.webp$/, '@2x.webp') : '';
+    const img = src
+      ? `<img src="${src}"${retina ? ` srcset="${src} 1x, ${retina} 2x"` : ''} alt="${esc(it.title)}" ${lazy ? 'loading="lazy" decoding="async"' : 'fetchpriority="high"'} width="720" height="540">`
+      : '';
+    const off = it.stock <= 0 ? `<span class="off-tag">Нет в наличии</span>` : '';
+    return `${img}${badgeHtml(it)}${off}`;
+  }
+
+  /* ---------- иконки категорий (инлайн-SVG: эмодзи на части систем не рендерятся) ---------- */
+  const ICON = {
+    pot:   '<path d="M4 10h16v5a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z"/><path d="M2 10h20M6 6c0-1.5 1-2 1-3M12 6c0-1.5 1-2 1-3M18 6c0-1.5 1-2 1-3"/>',
+    egg:   '<ellipse cx="12" cy="13" rx="7.5" ry="8"/><circle cx="12" cy="13" r="3"/>',
+    bowl:  '<path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M7 7c0-1 .8-1.3.8-2M12 7c0-1 .8-1.3.8-2M17 7c0-1 .8-1.3.8-2"/>',
+    gift:  '<rect x="3" y="9" width="18" height="11" rx="2"/><path d="M3 13h18M12 9v11"/><path d="M12 9C10 9 8 8 8 6.5S9.5 4 12 7c2.5-3 4-1.5 4 0S14 9 12 9z"/>',
+    cup:   '<path d="M6 7h11v7a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5z"/><path d="M17 9h2a2.5 2.5 0 0 1 0 5h-2M5 21h13"/>',
+    leaf:  '<path d="M12 21c0-6 3-11 9-12-1 7-4 10-9 12z"/><path d="M12 21C9 15 6 12 3 10"/>'
+  };
+  const icon = name => {
+    const body = ICON[name] || ICON.leaf;
+    return `<svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+  };
+
+  /* ---------- каталог ---------- */
+  const norm = s => String(s).toLowerCase().replace(/ё/g, 'е');
+
+  function visibleItems() {
+    let items = MENU.items;
+    if (query) {
+      const q = norm(query);
+      items = items.filter(i => norm(i.title).includes(q) || norm(i.desc).includes(q));
+    } else {
+      items = items.filter(i => i.category === cat);
+    }
+    return items;
+  }
+
+  function renderTabs() {
+    const q = query ? -1 : null;
+    $('tabs').innerHTML = MENU.categories.map(c => {
+      const n = MENU.items.filter(i => i.category === c.id).length;
+      return `<button class="tab ${c.id === cat && !query ? 'on' : ''}" data-cat="${c.id}" aria-pressed="${c.id === cat && !query}">
+        ${icon(c.icon)}${esc(c.title)}<span class="n">${n}</span></button>`;
+    }).join('');
+  }
+
+  // Сколько ещё можно взять — видно прямо в карточке, без попыток нажать «+».
+  function stockNoteText(it) {
+    if (it.stock <= 0) return '';
+    const inCart = cart.get(it.id) || 0;
+    if (inCart >= it.stock) {
+      return `Больше ${it.stock} ${plural(it.stock, 'порции','порций','порций')} нет`;
+    }
+    if (it.stock <= 3) {
+      return `Осталось ${it.stock} ${plural(it.stock, 'порция','порции','порций')}`;
+    }
+    return '';
+  }
+
+  function stockNote(it) {
+    const text = stockNoteText(it);
+    return text ? `<span class="left">${text}</span>` : '';
+  }
+
+  function cardHtml(it) {
+    return `<article class="card ${it.stock <= 0 ? 'off' : ''}" data-card="${it.id}">
+        <button class="pic" data-open="${it.id}" aria-label="Подробнее о «${esc(it.title)}»">${picHtml(it, true)}</button>
+        <div class="cb">
+          <button data-open="${it.id}" class="ct">${esc(it.title)}</button>
+          <span class="cm">${esc(it.weight)}${it.pack ? ' · ' + esc(it.pack) : ''}</span>
+          <span class="left" data-note>${stockNoteText(it)}</span>
+          <div class="cf"><span class="price">${rub(it.price)}</span><span data-qty-box>${qtyControl(it)}</span></div>
+        </div>
+      </article>`;
+  }
+
+  function renderCatalog() {
+    renderTabs();
+    const items = visibleItems();
+    if (!items.length) {
+      $('grid').innerHTML = `<div class="empty"><div class="big-emoji">🍳</div>
+        <b>${query ? 'Ничего не нашлось' : 'Здесь пока пусто'}</b>
+        <p>${query ? 'Попробуйте другое слово или откройте категорию.' : 'Загляните в другую категорию.'}</p></div>`;
+      return;
+    }
+    $('grid').innerHTML = items.map(cardHtml).join('');
+  }
+
+  // Обновляет ОДНУ карточку на месте. Пересборка всего каталога заставляла
+  // браузер заново запрашивать все картинки — меню видимо моргало на каждом «+».
+  function updateCard(id) {
+    const it = byId(id);
+    const card = $('grid').querySelector(`[data-card="${id}"]`);
+    if (!it || !card) return false;
+    const box = card.querySelector('[data-qty-box]');
+    const note = card.querySelector('[data-note]');
+    if (box) box.innerHTML = qtyControl(it);
+    if (note) note.textContent = stockNoteText(it);
+    return true;
+  }
+
+  function renderCartBar() {
+    const t = totals();
+    const onCatalog = !$('catalog').hidden;
+    if (tg) {
+      tg.MainButton.setParams({ color: '#5d6237', text_color: '#ffffff' });
+      if (onCatalog && t.count) { tg.MainButton.setText(`Корзина · ${rub(t.goods)}`); tg.MainButton.show(); }
+      else if (!$('checkout').hidden) { tg.MainButton.setText(`Оформить · ${rub(t.total)}`); tg.MainButton.show(); }
+      else tg.MainButton.hide();
+      $('cartbar').hidden = true;
+      $('submitBtn').hidden = true;
+    } else {
+      $('cartbar').hidden = !(onCatalog && t.count);
+      $('cartCount').textContent = `${t.count} ${plural(t.count, 'позиция', 'позиции', 'позиций')}`;
+      $('cartSum').textContent = rub(t.goods);
+    }
+  }
+
+  /* ---------- оформление ---------- */
+  function renderCheckout() {
+    $('form').hidden = false;          // возвращаем форму, если до этого была пустая корзина
+    $('emptyBack').hidden = true;
+    const s = MENU.settings, t = totals();
+    $('checkoutSub').textContent = `${t.count} ${plural(t.count, 'позиция', 'позиции', 'позиций')} · ${rub(t.goods)}`;
+    $('lines').innerHTML = [...cart].map(([id, q]) => {
+      const it = byId(id); if (!it) return '';
+      return `<div class="line">
+        <img src="${esc(it.image || '')}" alt="" width="52" height="52" loading="lazy">
+        <div><div class="t">${esc(it.title)}</div><div class="s">${rub(it.price)} × ${q}</div></div>
+        <div class="rt">
+          <span class="qty"><button data-dec="${id}" aria-label="Меньше">−</button><span>${q}</span><button data-inc="${id}" aria-label="Больше">+</button></span>
+          <span class="price">${rub(it.price * q)}</span>
+        </div></div>`;
+    }).join('') || '<p class="cm" style="padding:14px 0">Корзина пуста</p>';
+
+    const z = zones().length ? currentZone() : null;
+    $('sum').innerHTML = `
+      <span class="m">Блюда</span><span>${rub(t.goods)}</span>
+      <span class="m">Доставка${t.delivery ? ` <span style="font-size:11.5px">(бесплатно от ${rub(t.freeFrom)})</span>` : ''}</span>
+      <span>${t.delivery ? rub(t.delivery) : '<span class="free">бесплатно</span>'}</span>
+      <span class="total">Итого</span><span class="total">${rub(t.total)}</span>`;
+
+    const short = t.goods < s.min_order;
+    $('minWarn').hidden = !short;
+    $('minWarn').textContent = short
+      ? `Минимальный заказ ${rub(s.min_order)}. Добавьте ещё на ${rub(s.min_order - t.goods)}.`
+      : '';
+    if (z && z.min_sum && t.goods < z.min_sum) {
+      $('minWarn').hidden = false;
+      $('minWarn').textContent = `Для доставки «${z.title}» минимальная сумма ${rub(z.min_sum)}.`;
+    }
+    const sold = soldOutLines();
+    if (sold.length) {
+      // это важнее любой другой подсказки: заказ всё равно не пройдёт
+      $('minWarn').hidden = false;
+      $('minWarn').textContent =
+        `${sold.map(x => `«${x.title}»`).join(', ')} — уже закончилось. Уберите из корзины, `
+        + 'и остальное оформится.';
+    }
+  }
+
+  // full=true — пересобрать всё (смена категории, поиск, обновление меню).
+  // При обычном «+» перерисовывается только изменившаяся карточка.
+  function render(full) {
+    if (!$('catalog').hidden && full) renderCatalog();
+    if (!$('checkout').hidden) {
+      // Корзину опустошили прямо в оформлении (убрали все позиции) — не
+      // выкидываем человека в каталог молча, а показываем, что произошло.
+      if (!cart.size) { renderCheckoutEmpty(); return renderCartBar(); }
+      renderCheckout();
+    }
+    renderCartBar();
+  }
+
+  // В корзине могли остаться блюда, которые уже разобрали, — предупреждаем до
+  // нажатия «Оформить», а не после отказа сервера.
+  function soldOutLines() {
+    return [...cart.keys()].map(id => byId(id)).filter(it => it && it.stock <= 0);
+  }
+
+  function renderCheckoutEmpty() {
+    $('lines').innerHTML = `<div class="empty" style="padding:34px 16px">
+      <div class="big-emoji">🛒</div>
+      <b>В корзине пока пусто</b>
+      <p style="margin-top:6px">Выберите блюда в меню — и возвращайтесь сюда.</p>
+    </div>`;
+    $('sum').innerHTML = '';
+    $('minWarn').hidden = true;
+    $('checkoutSub').textContent = 'Пока ничего не выбрано';
+    $('form').hidden = true;          // формы без товаров быть не должно
+    $('emptyBack').hidden = false;
+  }
+
+  function show(id) {
+    ['catalog', 'checkout', 'done'].forEach(s => $(s).hidden = s !== id);
+    if (tg) { id === 'catalog' ? tg.BackButton.hide() : tg.BackButton.show(); }
+    window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    render(true);          // сменился экран — собираем заново
+  }
+
+  /* ---------- шторка блюда ---------- */
+  function openSheet(id) {
+    const it = byId(id); if (!it) return;
+    const facts = [
+      ['Вес', it.weight], ['В упаковке', it.pack],
+      ['Приготовление', it.cook], it.kcal ? ['КБЖУ на 100 г', it.kcal] : null,
+      ['Хранение', it.storage || MENU.settings.storage || 'Морозилка, −18°']
+    ].filter(Boolean);
+    const src = esc(it.image || '');
+    $('sheet').innerHTML = `
+      <div class="sheet-pic">
+        ${src ? `<img src="${src}" srcset="${src} 1x, ${src.replace(/\.webp$/, '@2x.webp')} 2x" alt="${esc(it.title)}" width="1080" height="675">` : ''}
+        <button class="sheet-close" data-close aria-label="Закрыть">✕</button>
+      </div>
+      <div class="sheet-body">
+        <div>${badgeHtml(it)}</div>
+        <h2 id="sheetTitle">${esc(it.title)}</h2>
+        <p class="desc">${esc(it.desc)}</p>
+        <dl class="facts">${facts.map(([k, v]) => `<div class="fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+        <div class="sheet-foot">
+          <span class="price">${rub(it.price)}</span>
+          ${qtyControl(it)}
+        </div>
+        <button class="ghost" data-close>Закрыть</button>
+      </div>`;
+    $('veil').hidden = false;
+    document.body.style.overflow = 'hidden';
+    $('sheet').scrollTop = 0;
+    sheetOpener = document.activeElement;   // куда вернуть фокус после закрытия
+    try { $('sheet').querySelector('.sheet-close').focus({ preventScroll: true }); } catch (e) {}
+  }
+
+  const closeSheet = () => {
+    $('veil').hidden = true;
+    document.body.style.overflow = '';
+    // без возврата фокуса он остаётся на невидимом элементе, и Tab уводит
+    // пользователя в непонятное место страницы
+    try { sheetOpener && sheetOpener.focus({ preventScroll: true }); } catch (e) {}
+    sheetOpener = null;
+  };
+
+  // Фокус не должен уходить за пределы шторки: для пользователей с клавиатурой
+  // Tab уводил его на карточки каталога за затемнением, и шторка становилась
+  // недоступной.
+  function trapSheetFocus(e) {
+    if ($('veil').hidden) return;
+    const focusable = [...$('sheet').querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+      .filter(el => !el.disabled && el.offsetParent !== null);
+    if (!focusable.length) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+    else if (!$('sheet').contains(document.activeElement)) { first.focus(); e.preventDefault(); }
+  }
+
+  /* ---------- даты и слоты ---------- */
+  const WEEKDAY_RU = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+  const WD_SHORT = ['вс','пн','вт','ср','чт','пт','сб'];
+  const MONTHS_SHORT = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+
+  // Даты приходят с сервера (settings.server_dates): он знает свою дату и
+  // часовой пояс. Часы устройства для этого не годятся — в другом поясе они
+  // дают другие дни, и сервер такой заказ отклонил бы.
+  function deliveryDates() {
+    const s = MENU.settings;
+    if (Array.isArray(s.server_dates) && s.server_dates.length) {
+      // ISO-дату разбираем как UTC-полдень, чтобы локальный пояс не сдвинул день
+      return s.server_dates.map(iso => {
+        const [y, m, d] = String(iso).split('-').map(Number);
+        return new Date(Date.UTC(y, m - 1, d, 12));
+      });
+    }
+    // запасной путь, если сервер прислал меню без дат
+    const allowed = (s.delivery_days || []).map(d => d.toLowerCase());
+    const out = [];
+    const ahead = Math.max(3, Math.min(Number(s.delivery_days_ahead) || 7, 21));
+    for (let i = 1; i <= ahead; i++) {
+      const dt = new Date(); dt.setHours(12, 0, 0, 0); dt.setDate(dt.getDate() + i);
+      if (allowed.length && !allowed.includes(WEEKDAY_RU[dt.getDay()])) continue;
+      out.push(dt);
+    }
+    if (!out.length) {
+      for (let i = 1; i <= 5; i++) { const dt = new Date(); dt.setHours(12,0,0,0); dt.setDate(dt.getDate() + i); out.push(dt); }
+    }
+    return out;
+  }
+
+  function fillForm() {
+    const s = MENU.settings;
+    $('f-pay').innerHTML = s.payment_methods.map(p => `<option>${esc(p)}</option>`).join('');
+
+    // районы
+    if (zones().length) {
+      $('f-zone').innerHTML = zones().map((z, i) =>
+        `<option value="${i}">${esc(z.title)} — от ${rub(z.free_from)} бесплатно</option>`).join('');
+    } else {
+      $('f-zone').closest('label').hidden = true;
+    }
+
+    // дни
+    const dates = deliveryDates();
+    day = dates[0] ? isoOf(dates[0]) : null;
+    $('days').innerHTML = dates.map((dt, i) => {
+      const iso = isoOf(dt);
+      // день недели и число берём в UTC: дата уже задана сервером, и локальный
+      // пояс устройства не должен её сдвигать
+      return `<button type="button" class="day ${i === 0 ? 'on' : ''}" data-day="${iso}" role="radio" aria-checked="${i===0}">
+        <div class="w">${WD_SHORT[dt.getUTCDay()]}</div><div class="d">${dt.getUTCDate()}</div>
+        <div class="mo">${MONTHS_SHORT[dt.getUTCMonth()]}</div></button>`;
+    }).join('');
+
+    // время
+    $('slots').innerHTML = s.delivery_slots.map(x =>
+      `<button type="button" class="slot" data-slot="${esc(x)}" role="radio" aria-checked="false">${esc(x)}</button>`).join('');
+    slot = s.delivery_slots[0] || null;
+    if (slot) document.querySelector('.slot')?.classList.add('on');
+
+    const u = tgUser;
+    if (u && !$('f-name').value) $('f-name').value = u.first_name || '';
+    if (!FROM_TELEGRAM) {
+      // открыто в браузере, не из Telegram: статусы в Telegram приходить не будут
+      $('submitHint').textContent = 'Мы позвоним, чтобы подтвердить заказ';
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem(CONTACT_KEY) || '{}');
+      ['name','phone','address'].forEach(k => { if (saved[k] && !$('f-' + k).value) $('f-' + k).value = saved[k]; });
+    } catch (e) {}
+  }
+
+  // Даты доставки живут в UTC (их так задал сервер), поэтому и разбираем их в UTC.
+  function isoOf(dt) {
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  /* ---------- отправка ---------- */
+  // sendData у Telegram принимает не больше 4096 байт и при превышении бросает
+  // исключение. Запасной канал нужен только когда сервер недоступен, поэтому
+  // сначала проверяем размер и вызываем внутри try.
+  // Та же проверка, что на сервере: десять любых цифр проходили и раньше, но
+  // такой номер нельзя набрать. Сервер всё равно перепроверит.
+  function phoneProblem(raw) {
+    let digits = String(raw || '').replace(/\D/g, '');
+    if (digits.length === 11 && (digits[0] === '7' || digits[0] === '8')) digits = '7' + digits.slice(1);
+    else if (digits.length === 10 && digits[0] === '9') digits = '7' + digits;
+    if (digits.length !== 11 || digits[0] !== '7') return 'Укажите телефон в формате +7 900 000-00-00.';
+    if (/^(\d)\1{9}$/.test(digits.slice(1))) return 'Похоже на ошибку в телефоне — проверьте номер.';
+    if (!'3489'.includes(digits[1])) return 'Проверьте код города или оператора в телефоне.';
+    return '';
+  }
+
+  const SEND_DATA_LIMIT = 4096;
+  function safeSendData(payload) {
+    try {
+      const text = JSON.stringify(payload);
+      if (!tg || !tg.sendData || new TextEncoder().encode(text).length > SEND_DATA_LIMIT) return false;
+      tg.sendData(text);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function submit() {
+    const s = MENU.settings, t = totals();
+    const f = {
+      name: $('f-name').value.trim(),
+      phone: $('f-phone').value.trim(),
+      address: $('f-address').value.trim()
+    };
+    const z = zones().length ? currentZone() : null;
+    let err = '';
+    if (t.goods < s.min_order) err = `Минимальный заказ ${rub(s.min_order)}.`;
+    else if (!f.name) err = 'Укажите имя.';
+    else if (phoneProblem(f.phone)) err = phoneProblem(f.phone);
+    else if (f.address.length < 5) err = 'Укажите адрес доставки.';
+    else if (!day) err = 'Выберите день доставки.';
+    else if (!slot) err = 'Выберите интервал доставки.';
+    else if (z && z.min_sum && t.goods < z.min_sum) err = `Для этого района минимальная сумма ${rub(z.min_sum)}.`;
+
+    $('formErr').hidden = !err; $('formErr').textContent = err;
+    if (err) {
+      haptic('err');
+      $('formErr').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    try { localStorage.setItem(CONTACT_KEY, JSON.stringify(f)); } catch (e) {}
+
+    const payload = {
+      type: 'order', items: [...cart], ...f,
+      zone: z ? z.title : '', date: day, slot, payment: $('f-pay').value,
+      comment: $('f-comment').value.trim().slice(0, 500), total: t.total
+    };
+    if (USER_TOKEN) payload.ut = USER_TOKEN;   // сервер узнает клиента по подписи
+
+    // Заказ всегда уходит на сервер: он атомарно списывает остатки, знает номер
+    // заказа и умеет ответить понятной ошибкой. Раньше внутри Telegram заказ
+    // отправлялся через sendData, и это теряло заказы: у метода лимит 4096 байт,
+    // при превышении он бросает исключение — а корзина к тому моменту уже была
+    // очищена, и клиент оставался без заказа и без объяснения.
+    const btn = $('submitBtn');
+    btn.disabled = true;
+    const btnText = btn.textContent;
+    btn.textContent = 'Отправляю…';
+    // initData — доказательство, что заказ из Telegram: сервер проверит подпись
+    // и запишет id пользователя, чтобы присылать ему статусы заказа.
+    const headers = { 'Content-Type': 'application/json' };
+    if (TG_INIT_DATA) headers['X-Init-Data'] = TG_INIT_DATA;
+    fetch('api/order', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    })
+      .then(async r => {
+        let out = null;
+        try { out = await r.json(); } catch (e) {}
+        if (!r.ok) {
+          const err = new Error((out && out.error) || 'Не удалось отправить заказ.');
+          err.handled = true;          // сервер ответил — запасной канал не нужен
+          err.code = out && out.code;  // GONE / UNKNOWN_ITEMS / BELOW_MIN …
+          throw err;
+        }
+        return out;
+      })
+      .then(out => {
+        cart.clear(); saveCart();
+        const numEl = $('doneOrder');
+        const sumEl = $('doneTotal');
+        if (out && out.order_id) {
+          numEl.textContent = `Заказ №${out.order_id}`;
+          numEl.hidden = false;
+        }
+        if (out && out.total) {
+          sumEl.textContent = `К оплате ${rub(out.total)}${out.delivery ? '' : ' · доставка бесплатно'}`;
+          sumEl.hidden = false;
+        }
+        $('doneHint').textContent = out && out.telegram
+          ? 'Менеджер подтвердит заказ, а о каждом изменении статуса бот напишет вам в Telegram.'
+          : 'Менеджер свяжется с вами по телефону, чтобы подтвердить заказ. Это окно можно закрыть.';
+        show('done');
+        haptic();
+      })
+      .catch(e => {
+        // Если сервер недоступен, но мы внутри Telegram — пробуем запасной канал.
+        // Корзину очищаем только после подтверждённой отправки, чтобы заказ
+        // можно было повторить одной кнопкой без набора заново.
+        if (!e.handled && tg) {
+          const sent = safeSendData(payload);
+          if (sent) {
+            cart.clear(); saveCart();
+            $('doneHint').textContent = 'Заказ отправлен. Менеджер подтвердит его и напишет вам в Telegram.';
+            show('done');
+            haptic();
+            return;
+          }
+        }
+        haptic('err');
+        $('formErr').hidden = false;
+        $('formErr').textContent = e.message + ' Попробуйте ещё раз или позвоните нам.';
+        $('formErr').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Отказ чаще всего из-за того, что блюдо успели заказать. Подтягиваем
+        // настоящие остатки, чтобы человек сразу видел, чего уже нет, а не
+        // натыкался на это снова и снова.
+        if (e.code === 'GONE' || e.code === 'UNKNOWN_ITEMS' || e.code === 'BELOW_MIN') {
+          loadMenu(false);
+        }
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = btnText;
+      });
+  }
+
+  /* ---------- события ---------- */
+  // Слушаем ошибки загрузки картинок на этапе перехвата: событие error не
+  // всплывает, но перехват его ловит. Инлайновый onerror не подошёл бы —
+  // функция imgError живёт внутри этой области видимости.
+  document.addEventListener('error', e => {
+    if (e.target && e.target.tagName === 'IMG') imgError(e.target);
+  }, true);
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) { if (e.target === $('veil')) closeSheet(); return; }
+    const d = b.dataset;
+    if (d.cat) { cat = d.cat; query = ''; $('q').value = ''; $('qClear').hidden = true; haptic(); window.scrollTo({top:0,behavior:'smooth'}); render(true); }
+    else if (d.add) { setQty(d.add, 1); toast('Добавлено в корзину'); }
+    else if (d.inc) setQty(d.inc, (cart.get(d.inc) || 0) + 1);
+    else if (d.dec) setQty(d.dec, (cart.get(d.dec) || 0) - 1);
+    else if (d.open) openSheet(d.open);
+    else if ('close' in d) closeSheet();
+    else if (d.slot) {
+      slot = d.slot;
+      document.querySelectorAll('.slot').forEach(x => {
+        const on = x.dataset.slot === slot;
+        x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
+      });
+      haptic();
+    }
+    else if (d.day) {
+      day = d.day;
+      document.querySelectorAll('.day').forEach(x => {
+        const on = x.dataset.day === day;
+        x.classList.toggle('on', on); x.setAttribute('aria-checked', on);
+      });
+      haptic();
+    }
+    if (!$('veil').hidden && (d.add || d.inc || d.dec)) refreshSheet(d.add || d.inc || d.dec);
+  });
+
+  // Внутри шторки меняем только цену и счётчик, не пересобирая её целиком:
+  // openSheet() сбрасывал прокрутку наверх и дёргал фокус при каждом «+/−».
+  function refreshSheet(id) {
+    const it = byId(id); if (!it) return;
+    const foot = $('sheet').querySelector('.sheet-foot');
+    if (!foot) return openSheet(id);
+    foot.innerHTML = `<span class="price">${rub(it.price)}</span>${qtyControl(it)}`;
+  }
+
+  // поиск
+  $('q').addEventListener('input', e => {
+    query = e.target.value.trim();
+    $('qClear').hidden = !query;
+    if (!$('catalog').hidden) renderCatalog();
+  });
+  $('qClear').onclick = () => { $('q').value = ''; query = ''; $('qClear').hidden = true; renderCatalog(); $('q').focus(); };
+
+  // зона влияет на стоимость доставки
+  $('f-zone').addEventListener('change', () => { if (!$('checkout').hidden) renderCheckout(); });
+
+  $('cartBtn').onclick = () => { haptic(); show('checkout'); };
+  $('backBtn').onclick = () => show('catalog');
+  $('againBtn').onclick = () => show('catalog');
+  $('emptyBack').onclick = () => show('catalog');
+  $('form').addEventListener('submit', e => { e.preventDefault(); submit(); });
+
+  document.addEventListener('keydown', e => {
+    if ($('veil').hidden) return;
+    if (e.key === 'Escape') closeSheet();
+    else if (e.key === 'Tab') trapSheetFocus(e);
+  });
+
+  if (tg) {
+    tg.MainButton.onClick(() => { if (!$('catalog').hidden) show('checkout'); else if (!$('checkout').hidden) submit(); });
+    tg.BackButton.onClick(() => { if (!$('veil').hidden) closeSheet(); else show('catalog'); });
+  }
+
+  /* ---------- загрузка ---------- */
+  // Меню нужно перечитывать при каждом возврате в приложение: пока клиент
+  // думал или оформлял заказ, другие могли разобрать блюдо. Раньше остатки
+  // оставались от первого открытия — витрина показывала товар в наличии,
+  // хотя его уже нет, и человек узнавал правду только при оформлении.
+  const refreshStockTimer = { id: 0 };
+
+  function applyMenu(m, first) {
+    MENU = m;
+    if (first) cat = m.categories[0].id;
+    let removed = 0, trimmed = 0;
+    for (const [id, q] of [...cart]) {
+      const it = byId(id);
+      if (!it) { cart.delete(id); removed += 1; continue; }
+      if (it.stock <= 0) { cart.delete(id); removed += 1; }
+      else if (q > it.stock) { cart.set(id, it.stock); trimmed += 1; }
+    }
+    saveCart();
+    const s = m.settings;
+    $('cityHint').textContent = `Доставка по ${s.city}у`;
+    document.title = `${s.brand || 'Успевайка'} — ${s.slogan || 'домашние полуфабрикаты'}`;
+
+    const perks = [
+      `от ${rub(s.min_order)}`,
+      `бесплатно от ${rub(s.free_delivery_from)}`,
+      s.pickup || '', s.storage ? 'Шоковая заморозка' : ''
+    ].filter(Boolean);
+    $('perks').innerHTML = perks.map(p => `<span class="perk">${esc(p)}</span>`).join('');
+
+    const daysTxt = (s.delivery_days || []).join(', ').toLowerCase();
+    $('foot').innerHTML = `Доставка: ${esc(daysTxt || 'по договорённости')}<br>
+      Вопросы и заказ: <a href="tel:${esc((s.phone || '').replace(/[^\d+]/g, ''))}">${esc(s.phone)}</a><br>
+      ${esc(s.storage || '')}`;
+
+    if (first) {
+      fillForm();
+      if (staleCart) {
+        staleCart = false;
+        toast('Прошлую корзину очистили: она простояла больше 20 минут');
+      }
+    }
+    render(true);          // пришли новые остатки — пересобираем каталог
+    if (!first && (removed || trimmed)) {
+      // говорим один раз и по делу: что именно изменилось в корзине
+      let msg = '';
+      if (removed && !cart.size) msg = 'Пока вы выбирали, всё из корзины уже заказали';
+      else if (removed) msg = 'Часть блюд закончилась — убрали из корзины';
+      else msg = 'Часть блюд уже заказали — количество уменьшилось';
+      toast(msg);
+    }
+  }
+
+  function loadMenu(first) {
+    return fetch('menu.json?_=' + Date.now(), { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(m => { applyMenu(m, first); })
+      .catch(() => {
+        if (first) {
+          $('grid').innerHTML = '<div class="empty"><div class="big-emoji">😕</div><b>Не удалось загрузить меню</b><p>Проверьте соединение и обновите страницу.</p></div>';
+        }
+        // при фоновом обновлении не пугаем: старое меню остаётся на экране
+      });
+  }
+
+  // остатки подтягиваем при возврате в приложение и раз в минуту, пока оно открыто
+  function refreshStock() {
+    if (!MENU || document.hidden) return;
+    loadMenu(false);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshStock();
+  });
+  window.addEventListener('focus', refreshStock);
+  clearInterval(refreshStockTimer.id);
+  refreshStockTimer.id = setInterval(refreshStock, 60000);
+
+  // --- Корзина, брошенная в открытом приложении ---
+  // Через 20 минут без действий предупреждаем, ещё через минуту очищаем.
+  // Так человек не теряет выбор молча: у него есть время вернуться.
+  const CART_IDLE_WARN_MS = CART_TTL_MS;              // 20 минут
+  const CART_IDLE_CLEAR_MS = CART_TTL_MS + 60 * 1000; // ещё минута после предупреждения
+  let cartWarned = false;
+
+  function idleCheck() {
+    if (!cart.size) { cartWarned = false; return; }
+    let last = 0;
+    try { last = Number(localStorage.getItem(CART_SEEN_KEY) || 0); } catch (e) {}
+    if (!last) return;
+    const idle = Date.now() - last;
+    if (idle > CART_IDLE_CLEAR_MS) {
+      cartWarned = false;
+      // остатки всё равно перечитываем: за 20 минут они изменились
+      clearCart('Корзина очищена — она простояла больше 20 минут. Блюда снова свободны для всех.');
+      loadMenu(false);
+      if (!$('checkout').hidden) show('catalog');
+      return;
+    }
+    if (!cartWarned && idle > CART_IDLE_WARN_MS) {
+      cartWarned = true;
+      toast('Корзина очистится через минуту — оформите заказ или нажмите «+», чтобы продлить');
+    }
+  }
+  setInterval(() => { if (!document.hidden) idleCheck(); }, 15000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) idleCheck(); });
+  // любое действие с корзиной продлевает её жизнь
+  ['click', 'keydown'].forEach(ev => document.addEventListener(ev, () => {
+    if (cart.size) { cartWarned = false; touchCart(true); }
+  }, true));
+
+  // скелетон, пока грузим меню
+  $('grid').innerHTML = Array.from({ length: 6 }, () => '<div class="sk"><div class="sp"></div><div class="sl"></div><div class="sl s"></div></div>').join('');
+  loadMenu(true);
+})();
+</script>
+</body>
+</html>

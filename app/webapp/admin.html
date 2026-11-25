@@ -1,0 +1,1416 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5d6237">
+<title>Успевайка — панель управления</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg:#fdf8f1; --bg-soft:#f7efe3; --surface:#fff; --surface-2:#fdf8f1;
+  --ink:#2a2d21; --ink-soft:#4a4f3c; --muted:#8a8a76; --line:#e9e1d2;
+  --olive:#5d6237; --olive-d:#4a4e2c; --olive-soft:#eef0e2;
+  --coral:#c0623c; --coral-soft:#fbe9e0;
+  --ok:#4e7a3f; --warn:#b8651f; --danger:#b0442c; --blue:#3d6489;
+  --shadow:0 1px 2px rgba(74,79,60,.05), 0 6px 20px rgba(74,79,60,.07);
+  --shadow-lg:0 8px 40px rgba(74,79,60,.16);
+  --r:16px; --r-sm:11px;
+  --f:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+html.dark{
+  --bg:#15170f; --bg-soft:#1c1f14; --surface:#1e2116; --surface-2:#242819;
+  --ink:#f0eddc; --ink-soft:#cfccb6; --muted:#94917a; --line:#333823;
+  --olive:#b9c07d; --olive-d:#a3ab66; --olive-soft:#242819;
+  --coral:#e8895f; --coral-soft:#33241c;
+  --ok:#8fbd76; --warn:#d99a4e; --danger:#e2836a; --blue:#7aa6cc;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.45;
+  -webkit-tap-highlight-color:transparent}
+body{overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2.5px solid var(--coral);outline-offset:2px}
+[hidden]{display:none!important}
+img{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* ---------- вход ---------- */
+.login{min-height:100dvh;display:grid;place-items:center;padding:24px}
+.login .box{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+  padding:26px 22px;box-shadow:var(--shadow-lg);display:grid;gap:13px;text-align:center}
+.login img{width:76px;margin:0 auto}
+.login h1{font-size:19px;margin:0;font-weight:800}
+.login p{margin:0;font-size:13px;color:var(--muted)}
+
+/* ---------- каркас ---------- */
+.shell{max-width:1000px;margin:0 auto;padding:12px 14px 40px;overflow-x:clip}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.top img{width:46px;height:auto}
+.top .who{font-size:12px;color:var(--muted);line-height:1.3}
+.top .who b{color:var(--ink);font-size:13px}
+.top .grow{flex:1}
+.top .kbd{font-size:10px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.top .kbd kbd{background:var(--bg-soft);border:1px solid var(--line);border-radius:5px;padding:2px 6px;
+  font-family:inherit;font-size:10px;font-weight:700}
+.nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 10px;position:sticky;top:0;
+  background:var(--bg);z-index:20;margin:0 -14px;padding-left:14px;padding-right:14px}
+.nav::-webkit-scrollbar{display:none}
+.nav button{flex:none;padding:9px 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);
+  font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+.nav button.on{background:var(--olive);border-color:var(--olive);color:#fff;box-shadow:0 3px 12px rgba(93,98,55,.28)}
+.nav .n{font-size:11px;opacity:.7;font-variant-numeric:tabular-nums}
+.ic{flex:none}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  margin-bottom:12px;overflow:hidden}
+.card-h{padding:13px 16px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);
+  flex-wrap:wrap;row-gap:8px}
+.card-h h2{font-size:13px;margin:0;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800}
+.card-h .grow{flex:1}
+.card-b{padding:14px 16px}
+
+/* ---------- формы ---------- */
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);
+  border:1.5px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;width:100%;transition:.15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--olive);outline:none;box-shadow:0 0 0 3px rgba(93,98,55,.12)}
+textarea{min-height:74px;resize:vertical;line-height:1.4}
+label{display:grid;gap:5px;font-size:12px;color:var(--muted);font-weight:600}
+.row{display:grid;gap:11px}
+.row.c2{grid-template-columns:1fr 1fr}
+.row.c3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:520px){.row.c3{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.row.c2{grid-template-columns:1fr}}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--olive);color:#fff;
+  font-weight:700;border-radius:var(--r-sm);padding:11px 17px;font-size:14px;transition:.15s;min-height:42px}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1.5px solid var(--line)}
+.btn.coral{background:var(--coral)}
+.btn.danger{background:transparent;color:var(--danger);border:1.5px solid var(--coral-soft)}
+.btn.sm{padding:8px 12px;font-size:12.5px;min-height:36px;border-radius:9px}
+.btn:disabled{opacity:.5;pointer-events:none}
+.btn.full{width:100%}
+
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.chip.ok{background:var(--olive-soft);color:var(--ok)}
+.chip.no{background:var(--coral-soft);color:var(--danger)}
+.chip.mid{background:#fdf0d9;color:var(--warn)}
+html.dark .chip.mid{background:#33281a}
+.chip.b{background:var(--olive-soft);color:var(--olive-d)}
+
+/* ---------- меню ---------- */
+.list{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:9px;align-items:center;padding:9px;
+  border:1px solid var(--line);border-radius:13px;background:var(--surface-2)}
+.item .thumb{width:64px;height:48px;border-radius:9px;object-fit:cover;background:var(--bg-soft);flex:none}
+.item .t{font-weight:700;font-size:13.5px;line-height:1.25;overflow-wrap:anywhere}
+.item .m{font-size:11.5px;color:var(--muted);display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
+.item .acts{display:flex;gap:5px;align-items:center}
+@media (max-width:600px){
+  .item{grid-template-columns:52px minmax(0,1fr)}
+  .item .thumb{width:52px;height:39px}
+  .item > .acts{grid-column:1/-1;justify-content:flex-end}
+}
+.iconbtn{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;
+  background:var(--surface);color:var(--ink-soft);transition:.15s}
+.iconbtn:active{transform:scale(.93)}
+.iconbtn.stop{color:var(--danger);border-color:var(--coral-soft)}
+.iconbtn.on{background:var(--coral-soft);color:var(--danger)}
+.empty{text-align:center;padding:34px 16px;color:var(--muted);font-size:13.5px}
+
+/* ---------- фото-редактор ---------- */
+.photo-edit{display:grid;grid-template-columns:180px 1fr;gap:14px;align-items:start}
+@media (max-width:560px){.photo-edit{grid-template-columns:1fr}}
+.photo-edit .pv{width:100%;aspect-ratio:4/3;border-radius:12px;object-fit:cover;background:var(--bg-soft);
+  border:1px solid var(--line)}
+.photo-edit .pv.err{opacity:.25}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center;font-size:12.5px;color:var(--muted);
+  transition:.15s;cursor:pointer}
+.drop.over{border-color:var(--olive);background:var(--olive-soft);color:var(--olive-d)}
+.drop.loading{opacity:.6;pointer-events:none}
+
+/* ---------- заказы ---------- */
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.filters button{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);
+  font-size:12.5px;font-weight:600}
+.filters button.on{background:var(--olive);border-color:var(--olive);color:#fff}
+.order{border:1px solid var(--line);border-radius:13px;background:var(--surface-2);margin-bottom:9px;overflow:hidden}
+.order-h{display:flex;gap:9px;align-items:center;padding:11px 13px;cursor:pointer;flex-wrap:wrap}
+.order-h .id{font-weight:800;font-size:14px}
+.order-h .who{font-size:12px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.order-h .sum{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.order-b{padding:0 13px 13px;display:grid;gap:9px;border-top:1px solid var(--line);padding-top:11px}
+.order-b .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.order-b .kv dt{color:var(--muted)}
+.order-b .kv dd{margin:0}
+.order-b .lines{display:grid;gap:3px;font-size:13px}
+.order-b .lines div{display:flex;justify-content:space-between;gap:10px}
+.order-b .lines .muted{color:var(--muted);font-size:12px}
+.statuses{display:flex;gap:5px;flex-wrap:wrap}
+.statuses button{padding:7px 11px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);
+  font-size:12px;font-weight:700;transition:.15s}
+.statuses button.on{background:var(--olive);border-color:var(--olive);color:#fff}
+.statuses button.cancel{border-color:var(--coral-soft);color:var(--danger)}
+
+/* ---------- статистика ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:9px;margin-bottom:12px;min-width:0}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;
+  box-shadow:var(--shadow);min-width:0;overflow:hidden}
+.tile .k{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.tile .v{font-size:20px;font-weight:800;letter-spacing:-.02em;margin-top:3px;font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere}
+.tile .s{font-size:11.5px;color:var(--muted)}
+.bars{display:grid;gap:7px;min-width:0}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;font-size:12.5px;align-items:center;min-width:0}
+.bar > span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .track{background:var(--bg-soft);border-radius:6px;height:9px;overflow:hidden;grid-column:1/-1;order:2}
+.bar .fill{height:100%;background:var(--olive);border-radius:6px;transition:width .4s ease}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(10px);background:var(--ink);
+  color:var(--bg);padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:90;opacity:0;
+  pointer-events:none;transition:.22s;box-shadow:var(--shadow-lg);max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast.bad{background:var(--danger);color:#fff}
+.toast .undo{margin-left:10px;text-decoration:underline;font-weight:700;cursor:pointer}
+
+.veil{position:fixed;inset:0;background:rgba(24,26,16,.5);z-index:60;display:flex;align-items:center;
+  justify-content:center;padding:14px;backdrop-filter:blur(3px);overflow-y:auto;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:var(--surface);border-radius:20px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);animation:scaleIn .22s cubic-bezier(.2,.9,.3,1)}
+@keyframes scaleIn{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
+.modal-h{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--surface);z-index:2}
+.modal-h h2{font-size:16px;margin:0;font-weight:800;flex:1}
+.modal-b{padding:16px 18px;display:grid;gap:12px}
+.modal-f{display:flex;gap:8px;padding:0 18px 18px;flex-wrap:wrap}
+.modal-f .grow{flex:1}
+
+/* prompt-replacement */
+.prompt-val{font-weight:800;color:var(--ink)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ======== ВХОД ======== -->
+<section class="login" id="login" hidden>
+  <form class="box" id="loginForm">
+    <img src="img/logo@2x.webp" alt="Успевайка">
+    <h1>Панель управления</h1>
+    <p id="loginHint">Введите пароль администратора</p>
+    <label for="pwd" class="sr">Пароль</label>
+    <input id="pwd" type="password" placeholder="Пароль" autocomplete="current-password" required>
+    <button class="btn full" type="submit">Войти</button>
+    <p id="loginErr" style="color:var(--danger)" hidden></p>
+  </form>
+</section>
+
+<!-- ======== ПАНЕЛЬ ======== -->
+<section class="shell" id="app" hidden>
+  <div class="top">
+    <img src="img/logo@2x.webp" alt="">
+    <div class="who"><b>Успевайка</b><br><span id="who">—</span></div>
+    <div class="grow"></div>
+    <div class="kbd" title="Горячие клавиши"><kbd>N</kbd>новое <kbd>F</kbd>поиск <kbd>1-4</kbd>вкладки</div>
+    <a class="btn ghost sm" href="/" target="_blank" rel="noopener">Витрина ↗</a>
+    <button class="btn ghost sm" id="logoutBtn" hidden>Выйти</button>
+  </div>
+
+  <nav class="nav" id="nav" role="tablist" aria-label="Разделы"></nav>
+  <div id="view" role="tabpanel"></div>
+</section>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="veil" id="veil" hidden>
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"></div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ TELEGRAM / DARK MODE
+   ========================================================= */
+const tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData ? window.Telegram.WebApp : null;
+if (tg) {
+  tg.ready(); tg.expand();
+  if (tg.colorScheme === 'dark') document.documentElement.classList.add('dark');
+  try { tg.BackButton.hide(); } catch (e) {}
+} else if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.documentElement.classList.add('dark');
+}
+
+/* =========================================================
+   УТИЛИТЫ
+   ========================================================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rub = n => (Number(n) || 0).toLocaleString('ru-RU') + ' ₽';
+const num = n => (Number(n) || 0).toLocaleString('ru-RU');
+const debounce = (fn, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+const ICONS = {
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+  cart:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.3l2.4 11.2a1.6 1.6 0 0 0 1.6 1.3h7.9a1.6 1.6 0 0 0 1.6-1.3L20 7H6"/>',
+  chart:'<path d="M3 20h18"/><rect x="5" y="11" width="3.4" height="6" rx="1"/><rect x="10.3" y="7" width="3.4" height="10" rx="1"/><rect x="15.6" y="13" width="3.4" height="4" rx="1"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  edit:'<path d="M4 20h4l10-10a2.5 2.5 0 0 0-3.5-3.5L4.5 16.5 4 20z"/>',
+  trash:'<path d="M4 7h16M9 7V4.5h6V7M6.5 7l.8 13h9.4l.8-13"/>',
+  stop:'<circle cx="12" cy="12" r="8.5"/><path d="M6.5 6.5l11 11"/>',
+  back:'<path d="M15 5l-7 7 7 7"/>',
+  save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v6h7V4M8 20v-6h8v6"/>',
+  up:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+  close:'<path d="M6 6l12 12M6 18L18 6"/>'
+};
+const ic = (name, size = 16) => `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+
+/* =========================================================
+   СЕТЬ + CSRF
+   ========================================================= */
+let INIT = '';
+try { INIT = (tg && tg.initData) || ''; } catch (e) { INIT = ''; }
+
+let ADMIN_TOKEN = '';
+try {
+  const params = new URLSearchParams(location.search);
+  ADMIN_TOKEN = params.get('ut') || '';
+  if (ADMIN_TOKEN) {
+    params.delete('ut');
+    const q = params.toString();
+    history.replaceState(null, '', location.pathname + (q ? '?' + q : ''));
+  }
+} catch (e) { ADMIN_TOKEN = ''; }
+
+/* ---------- CSRF ---------- */
+const state = {
+  tab: 'menu', menu: null, orders: null, stats: null,
+  statsDays: 14, filter: 'all',
+  open: new Set(),
+  csrfToken: '',              // токен, полученный от сервера
+  isShowingLogin: false,      // защита от race condition в api()
+  lastDeleted: null           // для "Undo"
+};
+
+async function api(path, opts = {}) {
+  const isOpts = ['method', 'body', 'headers'].some(k => k in opts);
+  if (!isOpts) opts = { body: opts };
+
+  const headers = Object.assign({}, opts.headers || {});
+  if (INIT) headers['X-Init-Data'] = INIT;
+  if (ADMIN_TOKEN) headers['X-Admin-Token'] = ADMIN_TOKEN;
+  if (state.csrfToken) headers['X-CSRF-Token'] = state.csrfToken;
+
+  let body = opts.body;
+  if (body && typeof body === 'object' && !(body instanceof FormData)
+      && !Object.keys(body).length) body = undefined;
+  if (body && !(body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(body);
+  }
+
+  let r;
+  try {
+    r = await fetch('/api/admin/' + path, {
+      method: opts.method || (body ? 'POST' : 'GET'),
+      headers, body, credentials: 'same-origin'
+    });
+  } catch (e) {
+    throw new Error('Нет соединения с сервером');
+  }
+
+  let data = null;
+  try { data = await r.json(); } catch (e) { data = null; }
+
+  // сервер может обновить CSRF-токен — сохраняем
+  if (data && data.csrf) state.csrfToken = data.csrf;
+  const newCsrf = r.headers.get('X-CSRF-Token');
+  if (newCsrf) state.csrfToken = newCsrf;
+
+  if (r.status === 401) {
+    if (!state.isShowingLogin) { state.isShowingLogin = true; showLogin(); }
+    throw new Error('Требуется вход');
+  }
+  if (r.status === 403) {
+    // CSRF-токен протух — запросим новый
+    try { await refreshCsrf(); } catch (_) {}
+    throw new Error('Сессия истекла. Повторите действие.');
+  }
+  if (!r.ok) throw new Error((data && data.error) || `Ошибка ${r.status}`);
+  return data;
+}
+
+async function refreshCsrf() {
+  try {
+    const r = await fetch('/api/admin/csrf', { credentials: 'same-origin' });
+    const t = r.headers.get('X-CSRF-Token');
+    if (t) state.csrfToken = t;
+  } catch (e) {}
+}
+
+let toastTimer;
+function toast(msg, bad, undo) {
+  const t = $('toast');
+  t.classList.toggle('bad', !!bad);
+  if (undo) {
+    t.innerHTML = esc(msg) + `<span class="undo" id="toastUndo">Отменить</span>`;
+    $('toastUndo').onclick = () => { undo(); t.classList.remove('on'); };
+  } else {
+    t.textContent = msg;
+  }
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), undo ? 5000 : 2400);
+}
+const haptic = ok => { try { tg && tg.HapticFeedback.notificationOccurred(ok ? 'success' : 'error'); } catch (e) {} };
+
+/* =========================================================
+   ПОДТВЕРЖДЕНИЯ / PROMPT-ЗАМЕНА / ФОКУС
+   ========================================================= */
+function openModal(html, focusFirst = true) {
+  $('modal').innerHTML = html;
+  $('veil').hidden = false;
+  document.body.style.overflow = 'hidden';
+  if (focusFirst) {
+    const first = $('modal').querySelector('input, button, select, textarea');
+    setTimeout(() => first && first.focus(), 50);
+  }
+}
+function closeModal() {
+  $('veil').hidden = true;
+  document.body.style.overflow = '';
+  $('modal').innerHTML = '';
+}
+
+/**
+ * Замена браузерного prompt() на модальное окно.
+ * Возвращает Promise<string|null>
+ */
+function promptModal({ title, message = '', defaultValue = '', placeholder = '', inputmode = 'text' }) {
+  return new Promise(resolve => {
+    openModal(`
+      <div class="modal-h"><h2 id="modalTitle">${esc(title)}</h2>
+        <button class="iconbtn" data-close aria-label="Закрыть">${ic('close', 16)}</button></div>
+      <div class="modal-b">
+        ${message ? `<p style="margin:0;color:var(--ink-soft);font-size:14px">${esc(message)}</p>` : ''}
+        <input id="promptInput" type="${inputmode === 'numeric' ? 'number' : 'text'}"
+          inputmode="${inputmode}" value="${esc(defaultValue)}" placeholder="${esc(placeholder)}">
+      </div>
+      <div class="modal-f">
+        <button class="btn ghost" data-close data-cancel>Отмена</button>
+        <div class="grow"></div>
+        <button class="btn" id="promptOk">${ic('save', 15)}OK</button>
+      </div>`);
+
+    const input = $('promptInput');
+    input.select();
+
+    const done = (val) => { closeModal(); resolve(val); };
+    $('promptOk').onclick = () => done(input.value);
+    $('modal').querySelectorAll('[data-close]').forEach(b =>
+      b.onclick = () => done(b.hasAttribute('data-cancel') ? null : input.value));
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); done(input.value); }
+      if (e.key === 'Escape') done(null);
+    });
+  });
+}
+
+function confirmModal({ title, message, okText = 'Подтвердить', danger = false }) {
+  return new Promise(resolve => {
+    openModal(`
+      <div class="modal-h"><h2 id="modalTitle">${esc(title)}</h2></div>
+      <div class="modal-b">
+        <p style="margin:0;color:var(--ink-soft);font-size:14px">${esc(message)}</p>
+      </div>
+      <div class="modal-f">
+        <button class="btn ghost" data-close data-cancel>Отмена</button>
+        <div class="grow"></div>
+        <button class="btn ${danger ? 'coral' : ''}" id="confirmOk">${esc(okText)}</button>
+      </div>`);
+    const done = (v) => { closeModal(); resolve(v); };
+    $('confirmOk').onclick = () => done(true);
+    $('modal').querySelector('[data-cancel]').onclick = () => done(false);
+  });
+}
+
+/* =========================================================
+   ВАЛИДАЦИЯ ИЗОБРАЖЕНИЙ
+   ========================================================= */
+const MAX_IMG_SIZE = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+function validateImage(file) {
+  if (!file) return 'Файл не выбран';
+  if (!ALLOWED_TYPES.includes(file.type)) return 'Допустимы только JPEG, PNG и WebP';
+  if (file.size > MAX_IMG_SIZE) return 'Файл слишком большой (макс. 10 МБ)';
+  return null;
+}
+
+/* =========================================================
+   НАВИГАЦИЯ И ВКЛАДКИ
+   ========================================================= */
+const TABS = [
+  { id: 'menu', title: 'Меню', icon: 'grid' },
+  { id: 'orders', title: 'Заказы', icon: 'cart' },
+  { id: 'stats', title: 'Статистика', icon: 'chart' },
+  { id: 'settings', title: 'Настройки', icon: 'gear' }
+];
+
+function renderNav() {
+  $('nav').innerHTML = TABS.map(t => {
+    let n = '';
+    if (t.id === 'orders' && state.orders) {
+      const active = (state.orders.counts && state.orders.counts.new) || 0;
+      if (active) n = `<span class="n">${active}</span>`;
+    }
+    return `<button data-tab="${t.id}" role="tab" aria-selected="${state.tab === t.id}"
+      class="${state.tab === t.id ? 'on' : ''}">${ic(t.icon, 15)}${t.title}${n}</button>`;
+  }).join('');
+}
+
+$('nav').addEventListener('click', e => {
+  const b = e.target.closest('[data-tab]');
+  if (!b) return;
+  state.tab = b.dataset.tab;
+  renderNav();
+  load(state.tab);
+});
+
+/* =========================================================
+   ЗАГРУЗКА ВКЛАДОК (с AbortController для отмены)
+   ========================================================= */
+let activeLoader = null;
+
+async function load(tab) {
+  const view = $('view');
+  if (activeLoader) activeLoader.abort();
+  activeLoader = new AbortController();
+  const signal = activeLoader.signal;
+
+  try {
+    view.innerHTML = '<div class="empty">Загрузка…</div>';
+    if (tab === 'menu') {
+      state.menu = await api('menu'); if (signal.aborted) return;
+      renderMenu();
+    } else if (tab === 'orders') {
+      state.orders = await api('orders?status=' + state.filter); if (signal.aborted) return;
+      renderOrders();
+    } else if (tab === 'stats') {
+      state.stats = await api('stats?days=' + state.statsDays); if (signal.aborted) return;
+      renderStats();
+    } else if (tab === 'settings') {
+      state.menu = state.menu || await api('menu'); if (signal.aborted) return;
+      renderSettings();
+    }
+    renderNav();
+  } catch (e) {
+    if (!signal.aborted) view.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  }
+}
+
+/* =========================================================
+   ВХОД / ВЫХОД
+   ========================================================= */
+function showLogin() {
+  $('login').hidden = false;
+  $('app').hidden = true;
+  if (INIT) { $('loginHint').textContent = 'Ваш Telegram-аккаунт не в списке ADMIN_IDS'; }
+}
+function showApp(who, passwordOnly) {
+  $('login').hidden = true;
+  $('app').hidden = false;
+  $('who').textContent = passwordOnly ? 'вход по паролю' : (who && who !== 'password' ? `Telegram id ${who}` : 'администратор');
+  $('logoutBtn').hidden = !passwordOnly;
+  renderNav();
+  load(state.tab);
+}
+
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const err = $('loginErr');
+  err.hidden = true;
+  try {
+    const r = await fetch('/api/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin', body: JSON.stringify({ password: $('pwd').value })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (data && data.csrf) state.csrfToken = data.csrf;
+    if (!r.ok) throw new Error(data.error || 'Не получилось войти');
+    await boot();
+  } catch (e2) {
+    err.textContent = e2.message;
+    err.hidden = false;
+    haptic(false);
+  }
+});
+
+$('logoutBtn').addEventListener('click', async () => {
+  await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {});
+  location.reload();
+});
+
+/* =========================================================
+   МЕНЮ: список блюд и категорий
+   ========================================================= */
+let imgVer = Date.now();
+
+function itemRow(it) {
+  const stopped = Number(it.stock) <= 0;
+  return `<div class="item" data-item="${esc(it.id)}">
+    <img class="thumb" src="${esc(it.image || '')}?v=${imgVer}" alt="" width="64" height="48" loading="lazy">
+    <div class="txt">
+      <div class="t">${esc(it.title)}</div>
+      <div class="m">
+        <span>${rub(it.price)}</span>
+        <span>${esc(it.weight || '—')}</span>
+        <span class="chip ${stopped ? 'no' : (Number(it.stock) <= 3 ? 'mid' : 'ok')}">
+          ${stopped ? 'стоп' : 'остаток ' + it.stock}</span>
+        ${it.badge ? `<span class="chip b">${esc(it.badge)}</span>` : ''}
+      </div>
+    </div>
+    <div class="acts">
+      <button class="iconbtn ${stopped ? 'on stop' : ''}" data-stop="${esc(it.id)}"
+        title="${stopped ? 'Вернуть в продажу' : 'Поставить на стоп'}"
+        aria-label="${stopped ? 'Вернуть в продажу' : 'Поставить на стоп'}">${ic('stop', 16)}</button>
+      <button class="iconbtn" data-edit="${esc(it.id)}" title="Редактировать" aria-label="Редактировать">${ic('edit', 16)}</button>
+      <button class="iconbtn stop" data-del="${esc(it.id)}" title="Удалить" aria-label="Удалить">${ic('trash', 16)}</button>
+    </div>
+  </div>`;
+}
+
+function renderMenu() {
+  const m = state.menu;
+  const cats = m.categories || [];
+  $('view').innerHTML = `
+    <div class="card">
+      <div class="card-h">
+        <h2>Позиции</h2><span class="chip b">${m.items.length}</span>
+        <div class="grow"></div>
+        <button class="btn sm" id="addItem">${ic('plus', 15)}Добавить блюдо</button>
+      </div>
+      <div class="card-b">
+        <input id="find" type="search" placeholder="Поиск по названию…" style="margin-bottom:12px" autocomplete="off">
+        <div id="itemsWrap"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Категории</h2><div class="grow"></div>
+        <button class="btn ghost sm" id="addCat">${ic('plus', 15)}Категория</button></div>
+      <div class="card-b list" id="cats"></div>
+    </div>`;
+
+  const findInput = $('find');
+  const debouncedDraw = debounce(q => draw(q), 250);
+  findInput.addEventListener('input', e => debouncedDraw(e.target.value.trim()));
+
+  function draw(q) {
+    const norm = s => String(s).toLowerCase().replace(/ё/g, 'е');
+    const items = m.items.filter(i => !q || norm(i.title).includes(norm(q)));
+    if (!items.length) { $('itemsWrap').innerHTML = '<div class="empty">Ничего не найдено</div>'; return; }
+    $('itemsWrap').innerHTML = cats.map(c => {
+      const group = items.filter(i => i.category === c.id);
+      if (!group.length) return '';
+      return `<div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;
+        letter-spacing:.05em;margin:14px 0 8px">${esc(c.title)} · ${group.length}</div>
+        <div class="list">${group.map(itemRow).join('')}</div>`;
+    }).join('');
+    attachImageFallback();
+  }
+  draw('');
+
+  $('cats').innerHTML = cats.map(c => {
+    const n = m.items.filter(i => i.category === c.id).length;
+    return `<div class="item" style="grid-template-columns:1fr auto">
+      <div><div class="t">${esc(c.title)}</div><div class="m"><span>id: ${esc(c.id)}</span><span>${n} блюд</span></div></div>
+      <div class="acts">
+        <button class="iconbtn" data-cedit="${esc(c.id)}" title="Изменить" aria-label="Изменить">${ic('edit', 16)}</button>
+        <button class="iconbtn stop" data-cdel="${esc(c.id)}" title="Удалить" aria-label="Удалить">${ic('trash', 16)}</button>
+      </div></div>`;
+  }).join('') || '<div class="empty">Категорий пока нет</div>';
+
+  // ---- делегированный обработчик на card (вешаем ОДИН РАЗ) ----
+  $('view').onclick = async e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.stop) return toggleStop(d.stop);
+    if (d.edit) return itemModal(d.edit);
+    if (d.del) return removeItem(d.del);
+    if (d.cedit) return catModal(d.cedit);
+    if (d.cdel) return removeCat(d.cdel);
+  };
+  $('addItem').onclick = () => itemModal(null);
+  $('addCat').onclick = () => catModal(null);
+
+  attachImageFallback();
+}
+
+/* Fallback для битых картинок — вместо inline onerror */
+function attachImageFallback() {
+  document.querySelectorAll('img.thumb, img.pv').forEach(img => {
+    if (img.dataset.fb) return;
+    img.dataset.fb = '1';
+    img.addEventListener('error', () => img.classList.add('err'), { once: true });
+  });
+}
+
+/* -------- Стоп / Возврат в меню -------- */
+async function toggleStop(id) {
+  const it = state.menu.items.find(i => i.id === id);
+  if (!it) return;
+  const stopped = Number(it.stock) <= 0;
+  try {
+    if (stopped) {
+      const v = await promptModal({
+        title: 'Вернуть в продажу',
+        message: `Сколько порций «${it.title}» выставить?`,
+        defaultValue: '5',
+        inputmode: 'numeric'
+      });
+      if (v === null) return;
+      const n = parseInt(v, 10);
+      if (!(n > 0)) return toast('Нужно положительное число', true);
+      await api('item/stock', { id, stock: n });
+      toast(`«${it.title}» снова в продаже: ${n} шт`);
+    } else {
+      await api('item/stock', { id, stop: true });
+      toast(`«${it.title}» на стопе`);
+    }
+    haptic(true);
+    state.menu = await api('menu');
+    renderMenu();
+  } catch (e) { haptic(false); toast(e.message, true); }
+}
+
+async function removeItem(id) {
+  const it = state.menu.items.find(i => i.id === id);
+  if (!it) return;
+  const ok = await confirmModal({
+    title: 'Удалить блюдо?',
+    message: `«${it.title}» исчезнет из меню. Это действие нельзя отменить.`,
+    okText: 'Удалить', danger: true
+  });
+  if (!ok) return;
+  try {
+    await api('item/delete', { id, drop_photo: false });
+    state.lastDeleted = { kind: 'item', payload: { ...it } };
+    toast('Удалено', false, async () => {
+      try {
+        await api('item', state.lastDeleted.payload);
+        state.menu = await api('menu');
+        renderMenu();
+        toast('Восстановлено');
+      } catch (e) { toast(e.message, true); }
+    });
+    state.menu = await api('menu');
+    renderMenu();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function removeCat(id) {
+  const itemsCount = state.menu.items.filter(i => i.category === id).length;
+  if (itemsCount > 0) {
+    return toast(`В категории ${itemsCount} блюд. Сначала удалите или перенесите их.`, true);
+  }
+  const ok = await confirmModal({
+    title: 'Удалить категорию?',
+    message: 'Категория будет удалена безвозвратно.',
+    okText: 'Удалить', danger: true
+  });
+  if (!ok) return;
+  try {
+    await api('category/delete', { id });
+    toast('Категория удалена');
+    state.menu = await api('menu');
+    renderMenu();
+  } catch (e) { toast(e.message, true); }
+}
+
+/* =========================================================
+   МОДАЛКА БЛЮДА (с валидацией фото)
+   ========================================================= */
+function itemModal(id) {
+  const m = state.menu;
+  const it = id ? m.items.find(x => x.id === id) : null;
+  const cats = m.categories || [];
+  const vals = it || { category: cats[0] ? cats[0].id : '', stock: 0, badge: '', price: '' };
+  openModal(`
+    <div class="modal-h"><h2 id="modalTitle">${it ? 'Блюдо' : 'Новое блюдо'}</h2>
+      <button class="iconbtn" data-close aria-label="Закрыть">${ic('close', 16)}</button></div>
+    <form class="modal-b" id="itemForm">
+      <div class="photo-edit">
+        <div>
+          <img class="pv" id="pv" src="${esc(vals.image || '')}?v=${imgVer}" alt="">
+          <label class="drop" id="drop" style="margin-top:8px" tabindex="0">
+            ${ic('up', 15)} Загрузить фото
+            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" hidden>
+          </label>
+        </div>
+        <div class="row">
+          <label>Название<input name="title" value="${esc(vals.title || '')}" required maxlength="80" placeholder="Сырники"></label>
+          <div class="row c2">
+            <label>Цена, ₽<input name="price" inputmode="numeric" value="${esc(vals.price || '')}" required></label>
+            <label>Остаток, шт<input name="stock" inputmode="numeric" value="${esc(vals.stock ?? 0)}"></label>
+          </div>
+          <label>Категория<select name="category">${cats.map(c =>
+            `<option value="${esc(c.id)}" ${c.id === vals.category ? 'selected' : ''}>${esc(c.title)}</option>`).join('')}</select></label>
+          <div class="row c2">
+            <label>Вес<input name="weight" value="${esc(vals.weight || '')}" placeholder="500 г"></label>
+            <label>В упаковке<input name="pack" value="${esc(vals.pack || '')}" placeholder="10 шт"></label>
+          </div>
+          <div class="row c2">
+            <label>Метка<select name="badge">${['','Хит','Новинка','Предзаказ','Ограничено'].map(b =>
+              `<option value="${esc(b)}" ${(vals.badge || '') === b ? 'selected' : ''}>${b || 'без метки'}</option>`).join('')}</select></label>
+            <label>КБЖУ<input name="kcal" value="${esc(vals.kcal || '')}" placeholder="190 / 11 / 7 / 19"></label>
+          </div>
+          <label>Приготовление<input name="cook" value="${esc(vals.cook || '')}" placeholder="Духовка 180°, 25 мин"></label>
+          <label>Описание<textarea name="desc" maxlength="600">${esc(vals.desc || '')}</textarea></label>
+        </div>
+      </div>
+      <label>id (латиница, для ссылок)<input name="id" value="${esc(vals.id || '')}"
+        placeholder="сгенерируется из названия" ${it ? 'readonly' : ''}></label>
+    </form>
+    <div class="modal-f">
+      <button class="btn ghost" data-close>Отмена</button>
+      <div class="grow"></div>
+      <button class="btn" id="saveItem">${ic('save', 15)}Сохранить</button>
+    </div>`);
+
+  attachImageFallback();
+
+  let uploaded = null;
+  const pv = $('pv');
+  const input = $('photoInput');
+  const drop = $('drop');
+  input.addEventListener('change', () => input.files[0] && upload(input.files[0]));
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('over');
+    const f = e.dataTransfer.files[0];
+    if (f) upload(f);
+  });
+  // клавиатурная доступность dropzone
+  drop.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+  });
+
+  async function upload(file) {
+    const err = validateImage(file);
+    if (err) return toast(err, true);
+    if (!id) { toast('Сначала сохраните блюдо, потом добавьте фото', true); return; }
+    const fd = new FormData();
+    fd.append('photo', file);
+    drop.textContent = 'Обрабатываю…';
+    drop.classList.add('loading');
+    try {
+      const r = await api('photo?id=' + encodeURIComponent(id), { method: 'POST', body: fd });
+      uploaded = r.image;
+      imgVer = Date.now();
+      pv.src = r.image + '?v=' + imgVer;
+      attachImageFallback();
+      toast('Фото обновлено');
+    } catch (e) {
+      toast(e.message, true);
+    } finally {
+      drop.innerHTML = `${ic('up', 15)} Загрузить фото`;
+      drop.classList.remove('loading');
+      input.value = '';
+    }
+  }
+
+  $('saveItem').onclick = async () => {
+    const f = new FormData($('itemForm'));
+    const payload = Object.fromEntries(f.entries());
+    if (uploaded) payload.image = uploaded;
+    try {
+      await api('item', payload);
+      toast('Сохранено');
+      haptic(true);
+      state.menu = await api('menu');
+      closeModal();
+      renderMenu();
+    } catch (e) { haptic(false); toast(e.message, true); }
+  };
+  $('modal').querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal);
+}
+
+/* =========================================================
+   МОДАЛКА КАТЕГОРИИ
+   ========================================================= */
+function catModal(id) {
+  const c = id ? state.menu.categories.find(x => x.id === id) : null;
+  openModal(`
+    <div class="modal-h"><h2 id="modalTitle">${c ? 'Категория' : 'Новая категория'}</h2>
+      <button class="iconbtn" data-close aria-label="Закрыть">${ic('close', 16)}</button></div>
+    <form class="modal-b" id="catForm">
+      <label>Название<input name="title" value="${esc(c ? c.title : '')}" required maxlength="60" placeholder="Десерты"></label>
+      <label>Иконка<select name="icon">${['pot','egg','bowl','gift','cup','leaf'].map(k =>
+        `<option value="${k}" ${(c && c.icon === k) ? 'selected' : ''}>${k}</option>`).join('')}</select></label>
+      <label>id (латиницей)<input name="id" value="${esc(c ? c.id : '')}" placeholder="desserts"></label>
+    </form>
+    <div class="modal-f">
+      <button class="btn ghost" data-close>Отмена</button><div class="grow"></div>
+      <button class="btn" id="saveCat">${ic('save', 15)}Сохранить</button>
+    </div>`);
+  $('saveCat').onclick = async () => {
+    const payload = Object.fromEntries(new FormData($('catForm')).entries());
+    try {
+      await api('category', payload);
+      toast('Сохранено');
+      state.menu = await api('menu');
+      closeModal();
+      renderMenu();
+    } catch (e) { toast(e.message, true); }
+  };
+  $('modal').querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal);
+}
+
+/* =========================================================
+   ЗАКАЗЫ
+   ========================================================= */
+const STATUS_FLOW = ['new', 'accepted', 'assembled', 'onway', 'delivered'];
+const STATUS_TITLES = { new: 'Новый', accepted: 'Принят', assembled: 'Собран', onway: 'В пути', delivered: 'Доставлен', cancelled: 'Отменён' };
+const statusTitle = k => STATUS_TITLES[k] || k;
+
+/**
+ * Модалка заказа: и новый заказ по телефону, и правка состава существующего.
+ * Список блюд с остатками — чтобы менеджер видел, чего уже нет, и не обещал
+ * клиенту проданное.
+ */
+function orderModal(order) {
+  const m = state.menu;
+  if (!m) { toast('Сначала загрузите меню', true); return; }
+  const editing = !!order;
+  // сколько уже в заказе (для правки — из заказа, для нового — 0)
+  const inOrder = new Map((editing ? order.items : []).map(i => [i.id, i.qty]));
+  openModal(`
+    <div class="modal-h"><h2 id="modalTitle">${editing ? `Заказ №${order.id}` : 'Заказ по телефону'}</h2>
+      <button class="iconbtn" data-close aria-label="Закрыть">${ic('close', 16)}</button></div>
+    <div class="modal-b">
+      <div class="row c2">
+        <label>Имя<input name="name" value="${esc(editing ? order.name || '' : '')}" placeholder="Анна"></label>
+        <label>Телефон<input name="phone" inputmode="tel" value="${esc(editing ? order.phone || '' : '')}" placeholder="+7 900 000-00-00"></label>
+      </div>
+      <label>Адрес<input name="address" value="${esc(editing ? order.address || '' : '')}" placeholder="Улица, дом, квартира"></label>
+      <div class="row c2">
+        <label>День<input name="date" type="date" value="${esc(editing ? order.date || '' : '')}"></label>
+        <label>Время<input name="slot" value="${esc(editing ? order.slot || '' : '')}" placeholder="12:00–14:00"></label>
+      </div>
+      <label>Комментарий<textarea name="comment" maxlength="500">${esc(editing ? order.comment || '' : '')}</textarea></label>
+
+      <div class="card" style="margin:4px 0 0">
+        <div class="card-h"><h2>Состав</h2><div class="grow"></div>
+          <span class="chip b" id="ordSum">0 ₽</span></div>
+        <div class="card-b row">
+          <input id="ordFind" type="search" placeholder="Найти блюдо — сырники, суп…"
+            aria-label="Поиск блюда для добавления" autocomplete="off">
+          <div class="row" id="ordItems"></div>       <!-- результаты поиска -->
+          <div class="row" id="ordChosen"></div>      <!-- уже в заказе -->
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" data-close>Отмена</button><div class="grow"></div>
+      <button class="btn" id="saveOrder">${ic('save', 15)}${editing ? 'Сохранить состав' : 'Принять заказ'}</button>
+    </div>`);
+
+  const byId = id => (state.menu.items || []).find(i => i.id === id);
+
+  // Источник правды — Map, а не поля ввода: строки списка перерисовываются
+  // при поиске, и значения в DOM между перерисовками терялись бы.
+  const counts = new Map(inOrder);
+
+  function readCounts() {
+    return [...counts].filter(([, q]) => q > 0);
+  }
+
+  function recalc() {
+    const sum = readCounts().reduce((acc, [id, q]) => {
+      const it = byId(id);
+      return acc + (it ? it.price * q : 0);
+    }, 0);
+    $('ordSum').textContent = rub(sum);
+  }
+
+  function qtyRow(it) {
+    const q = counts.get(it.id) || 0;
+    const out = Number(it.stock) <= 0;
+    return `<div class="row c2" style="align-items:center" data-row="${esc(it.id)}">
+      <div style="min-width:0">
+        <div style="font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.title)}</div>
+        <div class="muted" style="font-size:11.5px">${rub(it.price)} · ${out ? 'нет в наличии' : 'остаток ' + it.stock}</div>
+      </div>
+      <div class="qty" style="display:flex;align-items:center;gap:6px;justify-content:flex-end">
+        <button type="button" class="iconbtn" data-qty="${esc(it.id)}" data-d="-1" aria-label="Меньше">−</button>
+        <span data-count="${esc(it.id)}" style="min-width:26px;text-align:center;font-variant-numeric:tabular-nums">${q}</span>
+        <button type="button" class="iconbtn" data-qty="${esc(it.id)}" data-d="1" aria-label="Больше"
+          ${out && q === 0 ? 'disabled' : ''}>+</button>
+      </div>
+    </div>`;
+  }
+
+  // «ё» заменяем и в запросе, и в тексте — иначе «ёлка» не найдёт «еловый»
+  const norm = s => String(s).toLowerCase().replace(/ё/g, 'е');
+  // «говядина» должна находить «с говядиной»: в русском меняется окончание,
+  // поэтому сравниваем и по основе слова — отбрасываем последние две буквы
+  function matches(text, q) {
+    if (!q) return true;
+    if (q.length < 2) return false;        // одна буква совпадёт с половиной меню
+    const t = norm(text);
+    if (t.includes(q)) return true;
+    const stem = q.length > 5 ? q.slice(0, -2) : q;
+    return stem.length >= 4 && t.includes(stem);
+  }
+
+  function drawItems() {
+    const q = norm(($('ordFind').value || '').trim());
+    const all = state.menu.items || [];
+    const chosen = all.filter(it => (counts.get(it.id) || 0) > 0);
+    const rest = all.filter(it => (counts.get(it.id) || 0) === 0 &&
+      (matches(it.title, q) || matches(it.desc || '', q)));
+
+    // Результаты поиска — сразу под полем, НАД уже выбранными: при длинном
+    // списке заказа иначе кажется, что поиск ничего не нашёл.
+    if (q) {
+      $('ordItems').innerHTML = rest.length
+        ? `<div class="muted" style="font-size:11.5px">Найдено: ${rest.length}</div>`
+          + rest.map(qtyRow).join('')
+        : `<div class="empty" style="padding:10px 0">По запросу «${esc($('ordFind').value.trim())}» ничего не нашлось</div>`;
+      $('ordChosen').innerHTML = chosen.length
+        ? `<div class="muted" style="font-size:11.5px">Уже в заказе</div>`
+          + chosen.map(qtyRow).join('')
+        : '';
+    } else {
+      $('ordItems').innerHTML = '';
+      $('ordChosen').innerHTML = chosen.length
+        ? `<div class="muted" style="font-size:11.5px">Уже в заказе</div>`
+          + chosen.map(qtyRow).join('')
+        : '<div class="empty" style="padding:10px 0">Пока ничего не выбрано</div>';
+    }
+  }
+
+  $('ordFind').addEventListener('input', drawItems);
+
+  $('modal').addEventListener('click', e => {
+    const b = e.target.closest('[data-qty]');
+    if (!b) return;
+    const id = b.dataset.qty;
+    const it = byId(id);
+    const d = Number(b.dataset.d);
+    let q = Math.max(0, (counts.get(id) || 0) + d);
+    // нельзя положить в заказ больше, чем есть на складе
+    if (d > 0 && it && q > Number(it.stock)) {
+      toast(`«${it.title}»: в наличии ${it.stock}`, true);
+      q = Number(it.stock);
+    }
+    if (q > 0) counts.set(id, q); else counts.delete(id);
+    drawItems();
+    recalc();
+  });
+
+  // ручной ввод в поле поиска не должен срабатывать как количество
+  drawItems();
+  recalc();
+
+  $('saveOrder').onclick = async () => {
+    const items = readCounts();
+    if (!items.length) return toast('Добавьте хотя бы одно блюдо', true);
+    const fields = {
+      name: ($('modal').querySelector('[name=name]').value || '').trim(),
+      phone: ($('modal').querySelector('[name=phone]').value || '').trim(),
+      address: ($('modal').querySelector('[name=address]').value || '').trim(),
+      date: $('modal').querySelector('[name=date]').value || '',
+      slot: ($('modal').querySelector('[name=slot]').value || '').trim(),
+      comment: ($('modal').querySelector('[name=comment]').value || '').trim(),
+    };
+    $('saveOrder').disabled = true;
+    try {
+      if (editing) {
+        const r = await api('order/items', { id: order.id, items });
+        (r.warnings || []).forEach(w => toast(w, true));
+        toast(`Заказ №${order.id} изменён`);
+      } else {
+        if (fields.phone.replace(/\D/g, '').length < 10) throw new Error('Укажите телефон');
+        if (fields.address.length < 5) throw new Error('Укажите адрес');
+        const r = await api('order/create', { ...fields, items });
+        toast(`Заказ №${r.order.id} принят`);
+      }
+      haptic(true);
+      closeModal();
+      state.orders = await api('orders?status=' + state.filter);
+      renderOrders();
+      renderNav();
+      state.menu = await api('menu');   // остатки изменились
+    } catch (e) {
+      haptic(false);
+      toast(e.message, true);
+      $('saveOrder').disabled = false;
+    }
+  };
+  $('modal').querySelectorAll('[data-close]').forEach(b => b.onclick = closeModal);
+}
+
+function renderOrders() {
+  const data = state.orders;
+  const counts = data.counts || {};
+  const filters = [{ key: 'all', title: 'Все' }].concat((data.statuses || []).map(s => ({ key: s.key, title: s.title })));
+  $('view').innerHTML = `
+    <div class="filters" role="tablist">${filters.map(f =>
+      `<button data-filter="${f.key}" role="tab" aria-selected="${state.filter === f.key}"
+        class="${state.filter === f.key ? 'on' : ''}">${esc(f.title)}${counts[f.key] ? ` · ${counts[f.key]}` : ''}</button>`).join('')}</div>
+    <button class="btn full" id="newOrder" style="margin-bottom:12px">${ic('plus', 16)}Заказ по телефону</button>
+    <div id="ordersList"></div>`;
+
+  const list = data.orders || [];
+  $('ordersList').innerHTML = list.length ? list.map(orderCard).join('') : '<div class="empty">Заказов нет</div>';
+
+  // делегирование — один обработчик на весь контейнер
+  $('view').onclick = async e => {
+    const head = e.target.closest('[data-oid]');
+    if (head && !e.target.closest('button')) {
+      const id = Number(head.dataset.oid);
+      state.open.has(id) ? state.open.delete(id) : state.open.add(id);
+      renderOrders();
+      return;
+    }
+    const sb = e.target.closest('[data-status]');
+    if (sb) return setStatus(Number(sb.dataset.oid), sb.dataset.status);
+
+    const eb = e.target.closest('[data-edit-order]');
+    if (eb) {
+      const o = (state.orders.orders || []).find(x => x.id === Number(eb.dataset.editOrder));
+      if (!o) return;
+      if (!state.menu) state.menu = await api('menu');
+      return orderModal(o);
+    }
+
+    if (e.target.closest('#newOrder')) {
+      if (!state.menu) state.menu = await api('menu');
+      return orderModal(null);
+    }
+
+    const fb = e.target.closest('[data-filter]');
+    if (fb && fb.parentElement.classList.contains('filters')) {
+      state.filter = fb.dataset.filter;
+      state.orders = await api('orders?status=' + state.filter);
+      renderOrders();
+    }
+  };
+}
+
+function orderCard(o) {
+  const open = state.open.has(o.id);
+  const closed = o.status === 'delivered' || o.status === 'cancelled';
+  const lines = (o.items || []).map(i =>
+    `<div><span>${esc(i.title || i.id)} × ${i.qty}</span><span>${rub((i.price || 0) * (i.qty || 0))}</span></div>`).join('');
+  const chipCls = o.status === 'new' ? 'mid' : (closed ? (o.status === 'cancelled' ? 'no' : 'ok') : 'b');
+  return `<div class="order">
+    <div class="order-h" data-oid="${o.id}" tabindex="0" aria-expanded="${open}">
+      <span class="id">№${o.id}</span>
+      <span class="chip ${chipCls}">${esc(o.status_title || statusTitle(o.status))}</span>
+      <span class="who">${esc(o.created_text || '')} · ${esc(o.name || '')}</span>
+      <span class="sum">${rub(o.total)}</span>
+    </div>
+    ${open ? `<div class="order-b">
+      <dl class="kv">
+        <dt>Клиент</dt><dd>${esc(o.name || '—')}, <a href="tel:${esc((o.phone || '').replace(/[^\d+]/g, ''))}">${esc(o.phone || '—')}</a></dd>
+        <dt>Откуда</dt><dd>${o.username
+          ? `<a href="https://t.me/${encodeURIComponent(o.username)}" target="_blank" rel="noopener">@${esc(o.username)}</a>`
+          : (o.user_id ? `Telegram id ${esc(String(o.user_id))}` : 'с сайта, без Telegram')}</dd>
+        <dt>Адрес</dt><dd>${esc(o.address || '—')}${o.zone ? ' · ' + esc(o.zone) : ''}</dd>
+        <dt>Доставка</dt><dd>${esc(o.date || '')}, ${esc(o.slot || '')}</dd>
+        <dt>Оплата</dt><dd>${esc(o.payment || '—')}</dd>
+        ${o.comment ? `<dt>Комментарий</dt><dd>${esc(o.comment)}</dd>` : ''}
+      </dl>
+      <div class="lines">${lines}
+        <div class="muted"><span>Доставка</span><span>${o.delivery ? rub(o.delivery) : 'бесплатно'}</span></div>
+      </div>
+      <div class="statuses">${STATUS_FLOW.map(s =>
+        `<button data-oid="${o.id}" data-status="${s}" class="${o.status === s ? 'on' : ''}"
+          ${closed && o.status !== s ? 'disabled style="opacity:.4"' : ''}>${esc(statusTitle(s))}</button>`).join('')}
+        ${o.status !== 'cancelled' && !closed
+          ? `<button class="cancel" data-oid="${o.id}" data-status="cancelled">Отменить</button>` : ''}
+      </div>
+      ${!closed ? `<button class="btn ghost full" data-edit-order="${o.id}" style="margin-top:10px">
+        ${ic('edit', 15)}Изменить состав</button>` : ''}
+    </div>` : ''}
+  </div>`;
+}
+
+async function setStatus(id, status) {
+  if (status === 'cancelled') {
+    const ok = await confirmModal({
+      title: `Отменить заказ №${id}?`,
+      message: 'Остатки автоматически вернутся в меню.',
+      okText: 'Отменить заказ', danger: true
+    });
+    if (!ok) return;
+  }
+  try {
+    await api('order/status', { id, status });
+    toast(`Заказ №${id}: ${statusTitle(status)}`);
+    haptic(true);
+    state.orders = await api('orders?status=' + state.filter);
+    renderOrders();
+    renderNav();
+  } catch (e) { haptic(false); toast(e.message, true); }
+}
+
+/* =========================================================
+   СТАТИСТИКА
+   ========================================================= */
+function renderStats() {
+  const s = state.stats;
+  const maxRevenue = Math.max(1, ...(s.by_day || []).map(d => d.revenue));
+  $('view').innerHTML = `
+    <div class="card">
+      <div class="card-h"><h2>Сводка</h2><div class="grow"></div>
+        <select id="daysSel" style="width:auto;padding:7px 10px;font-size:13px">
+          ${[7, 14, 30, 90].map(d => `<option value="${d}" ${d === state.statsDays ? 'selected' : ''}>${d} дней</option>`).join('')}
+        </select></div>
+      <div class="card-b">
+        <div class="tiles">
+          <div class="tile"><div class="k">Сегодня</div><div class="v">${rub((s.today || {}).revenue || 0)}</div>
+            <div class="s">${(s.today || {}).orders || 0} заказов</div></div>
+          <div class="tile"><div class="k">Всего заказов</div><div class="v">${num((s.totals || {}).orders)}</div>
+            <div class="s">без отменённых</div></div>
+          <div class="tile"><div class="k">Выручка</div><div class="v">${rub((s.totals || {}).revenue)}</div>
+            <div class="s">за всё время</div></div>
+          <div class="tile"><div class="k">Средний чек</div><div class="v">${rub((s.totals || {}).avg)}</div>
+            <div class="s">по всем заказам</div></div>
+        </div>
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;
+          letter-spacing:.05em;margin:6px 0 10px">Выручка по дням</div>
+        <div class="bars">${(s.by_day || []).length ? s.by_day.map(d => `
+          <div class="bar"><span>${esc(d.date)}</span><span>${rub(d.revenue)} · ${d.orders}</span>
+          <span class="track"><span class="fill" style="width:${Math.round(d.revenue / maxRevenue * 100)}%"></span></span></div>`).join('')
+          : '<div class="empty">Пока нет данных</div>'}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Что берут чаще</h2></div>
+      <div class="card-b bars">
+        ${(s.top || []).length ? s.top.map((t, i) => {
+          const max = Math.max(1, s.top[0].sum);
+          return `<div class="bar"><span>${i + 1}. ${esc(t.title)}</span><span>${t.qty} шт · ${rub(t.sum)}</span>
+            <span class="track"><span class="fill" style="width:${Math.round(t.sum / max * 100)}%"></span></span></div>`;
+        }).join('') : '<div class="empty">Пока нет заказов</div>'}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>Статусы заказов</h2></div>
+      <div class="card-b bars">
+        ${Object.entries(s.by_status || {}).map(([k, n]) => `<div class="bar"><span>${esc(statusTitle(k))}</span><span>${n}</span></div>`).join('')
+          || '<div class="empty">Пока нет данных</div>'}
+      </div>
+    </div>`;
+
+  $('daysSel').onchange = async e => {
+    state.statsDays = Number(e.target.value);
+    state.stats = await api('stats?days=' + state.statsDays);
+    renderStats();
+  };
+}
+
+/* =========================================================
+   НАСТРОЙКИ
+   ========================================================= */
+function renderSettings() {
+  const s = state.menu.settings || {};
+  const zones = JSON.parse(JSON.stringify(s.delivery_zones || [])); // локальная копия
+  $('view').innerHTML = `
+    <form id="setForm">
+      <div class="card">
+        <div class="card-h"><h2>Доставка</h2></div>
+        <div class="card-b row">
+          <div class="row c2">
+            <label>Город<input name="city" value="${esc(s.city || '')}"></label>
+            <label>Телефон<input name="phone" value="${esc(s.phone || '')}"></label>
+          </div>
+          <div class="row c2">
+            <label>Минимальный заказ, ₽<input name="min_order" inputmode="numeric" value="${esc(s.min_order || 0)}"></label>
+            <label>Базовая доставка, ₽<input name="delivery_price" inputmode="numeric" value="${esc(s.delivery_price || 0)}"></label>
+          </div>
+          <div class="row c2">
+            <label>Бесплатно от, ₽<input name="free_delivery_from" inputmode="numeric" value="${esc(s.free_delivery_from || 0)}"></label>
+            <label>Дней вперёд<input name="delivery_days_ahead" inputmode="numeric" value="${esc(s.delivery_days_ahead || 7)}"></label>
+          </div>
+          <label>Дни доставки (через запятую)
+            <input name="delivery_days" value="${esc((s.delivery_days || []).join(', '))}"></label>
+          <label>Интервалы (через запятую)
+            <input name="delivery_slots" value="${esc((s.delivery_slots || []).join(', '))}"></label>
+          <label>Способы оплаты (через запятую)
+            <input name="payment_methods" value="${esc((s.payment_methods || []).join(', '))}"></label>
+          <label>Хранение<input name="storage" value="${esc(s.storage || '')}"></label>
+          <label>Самовывоз<input name="pickup" value="${esc(s.pickup || '')}"></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Районы доставки</h2><div class="grow"></div>
+          <button type="button" class="btn ghost sm" id="addZone">${ic('plus', 15)}Район</button></div>
+        <div class="card-b list" id="zones"></div>
+      </div>
+
+      <button class="btn full" type="submit" style="margin-bottom:14px">${ic('save', 16)}Сохранить настройки</button>
+    </form>`;
+
+  function drawZones() {
+    $('zones').innerHTML = zones.map((z, i) => `
+      <div class="item" style="grid-template-columns:1fr auto;align-items:start">
+        <div class="row" style="gap:7px">
+          <input data-z="${i}" data-k="title" value="${esc(z.title || '')}" placeholder="Название района">
+          <div class="row c3">
+            <label style="font-size:11px">Бесплатно от
+              <input data-z="${i}" data-k="free_from" inputmode="numeric" value="${esc(z.free_from || 0)}"></label>
+            <label style="font-size:11px">Стоимость
+              <input data-z="${i}" data-k="price" inputmode="numeric" value="${esc(z.price || 0)}"></label>
+            <label style="font-size:11px">Мин. сумма
+              <input data-z="${i}" data-k="min_sum" inputmode="numeric" value="${esc(z.min_sum || '')}"></label>
+          </div>
+        </div>
+        <button type="button" class="iconbtn stop" data-zdel="${i}" title="Удалить" aria-label="Удалить район">${ic('trash', 16)}</button>
+      </div>`).join('') || '<div class="empty">Районы не заданы — работает общая доставка</div>';
+  }
+  drawZones();
+
+  // делегирование на zones
+  $('zones').addEventListener('click', e => {
+    const b = e.target.closest('[data-zdel]');
+    if (!b) return;
+    zones.splice(Number(b.dataset.zdel), 1);
+    drawZones();
+  });
+  $('zones').addEventListener('input', e => {
+    const t = e.target;
+    if (!t.dataset.k) return;
+    zones[Number(t.dataset.z)][t.dataset.k] = t.value;
+  });
+  $('addZone').onclick = () => {
+    zones.push({ title: '', free_from: 3000, price: 350 });
+    drawZones();
+  };
+
+  $('setForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = new FormData($('setForm'));
+    const payload = {};
+    for (const [k, v] of f.entries()) payload[k] = v;
+    payload.delivery_days = String(payload.delivery_days || '').split(',').map(x => x.trim()).filter(Boolean);
+    payload.delivery_slots = String(payload.delivery_slots || '').split(',').map(x => x.trim()).filter(Boolean);
+    payload.payment_methods = String(payload.payment_methods || '').split(',').map(x => x.trim()).filter(Boolean);
+    payload.delivery_zones = zones.filter(z => z.title).map(z => ({
+      title: z.title, free_from: Number(z.free_from) || 0, price: Number(z.price) || 0,
+      ...(Number(z.min_sum) ? { min_sum: Number(z.min_sum) } : {})
+    }));
+    try {
+      await api('settings', payload);
+      toast('Настройки сохранены');
+      haptic(true);
+      state.menu = await api('menu');
+    } catch (e2) { haptic(false); toast(e2.message, true); }
+  });
+}
+
+/* =========================================================
+   ГЛОБАЛЬНЫЕ ОБРАБОТЧИКИ: ESC, хоткеи, закрытие модалок
+   ========================================================= */
+$('veil').addEventListener('click', e => { if (e.target === $('veil')) closeModal(); });
+document.addEventListener('keydown', e => {
+  // ESC — закрыть модалку
+  if (e.key === 'Escape' && !$('veil').hidden) { closeModal(); return; }
+
+  // хоткеи — работают только когда нет модалки и фокус не в input
+  if ($('veil').hidden && !$('login').hidden === false) {
+    const tag = document.activeElement && document.activeElement.tagName;
+    const inField = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+    if (!inField) {
+      if (e.key === 'n' || e.key === 'N') {
+        if (state.tab === 'menu' && state.menu) { e.preventDefault(); itemModal(null); }
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (state.tab === 'menu') { e.preventDefault(); const f = $('find'); if (f) f.focus(); }
+      } else if (/^[1-4]$/.test(e.key)) {
+        const target = TABS[Number(e.key) - 1];
+        if (target) { state.tab = target.id; renderNav(); load(state.tab); }
+      }
+    }
+
+    // Ctrl/Cmd + S — сохранить в открытой модалке
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      const saveBtn = $('saveItem') || $('saveCat');
+      if (saveBtn) { e.preventDefault(); saveBtn.click(); }
+    }
+  }
+});
+
+/* =========================================================
+   ЗАПУСК
+   ========================================================= */
+// Панель можно открыть сразу на нужном заказе: ?order=12 — с карточки в чате.
+function orderFromUrl() {
+  try {
+    const v = new URLSearchParams(location.search).get('order');
+    return v && /^\d+$/.test(v) ? Number(v) : 0;
+  } catch (e) { return 0; }
+}
+
+async function openOrderFromUrl() {
+  const id = orderFromUrl();
+  if (!id) return false;
+  try {
+    state.orders = await api('orders?status=all');
+    if (!state.menu) state.menu = await api('menu');
+    const o = (state.orders.orders || []).find(x => x.id === id);
+    if (!o) { toast(`Заказ №${id} не найден`, true); return false; }
+    state.tab = 'orders';
+    state.filter = 'all';
+    state.open.add(id);
+    renderNav();
+    renderOrders();
+    state.open.add(id);            // renderOrders мог сбросить — фиксируем снова
+    renderOrders();
+    orderModal(o);                 // сразу открываем форму правки
+    return true;
+  } catch (e) {
+    toast(e.message, true);
+    return false;
+  }
+}
+
+async function boot() {
+  await refreshCsrf();
+  try {
+    const info = await api('session');
+    showApp(info.who, info.password_only || info.who === 'password');
+    await openOrderFromUrl();
+  } catch (e) {
+    if (INIT || ADMIN_TOKEN) {
+      showLogin();
+      $('loginHint').textContent = 'Нет доступа: ваш Telegram-аккаунт не в списке ADMIN_IDS.';
+      $('loginForm').hidden = true;
+    } else {
+      showLogin();
+    }
+  }
+}
+boot();
+})();
+</script>
+</body>
+</html>

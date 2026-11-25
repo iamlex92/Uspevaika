@@ -1,0 +1,16 @@
+# окружения
+.venv/
+.venv-*/
+venv/
+
+# настройки и данные
+.env
+*.env
+*.db
+*.db-wal
+*.db-shm
+menu.json.tmp
+
+# python
+__pycache__/
+*.pyc

@@ -1,0 +1,27 @@
+# секреты и данные — не публиковать никогда
+.env
+*.env
+!env.template
+orders.db
+orders.db-wal
+orders.db-shm
+*.db-wal
+*.db-shm
+
+# окружения Python
+.venv/
+.venv-*/
+venv/
+__pycache__/
+*.pyc
+
+# временное
+*.tmp
+menu.json.tmp
+menu.json.bak.*
+orders.db.bak.*
+*.log
+
+# артефакты сборки релиза
+uspevaika-release-*.tar.gz
+uspevaika-release.sha256
