@@ -433,6 +433,19 @@ class StatusTests(BotTestCase):
         finally:
             con.close()
 
+    async def test_only_next_status_button(self):
+        # заказ сначала принимают, потом собирают: «Собран» не должен стоять
+        # рядом с «Принят» у нового заказа
+        order_id = await self.make_order()
+        for status, expected in (("new", "✅ Принят"), ("accepted", "📦 Собран"),
+                                 ("assembled", "🚗 В пути")):
+            with self.subTest(status=status):
+                kb = bot.admin_kb(order_id, status)
+                statuses = [b.text for row in kb.inline_keyboard for b in row
+                            if b.callback_data.startswith("st:")
+                            and b.callback_data.split(":")[2] != "cancelled"]
+                self.assertEqual(statuses, [expected])
+
     async def test_cancel_returns_stock(self):
         order_id = await self.make_order()
         before = self.stocks()

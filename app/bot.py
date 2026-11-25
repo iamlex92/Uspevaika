@@ -339,7 +339,9 @@ def admin_kb(order_id: int, status: str) -> InlineKeyboardMarkup | None:
         return None
     passed = FLOW.index(status) if status in FLOW else -1
     nxt = [s for s in FLOW if FLOW.index(s) > passed]
-    row = [InlineKeyboardButton(text=STATUSES[s], callback_data=f"st:{order_id}:{s}") for s in nxt[:2]]
+    # Только следующий шаг: заказ сначала принимают, и лишь потом собирают.
+    # Кнопки «Принят» и «Собран» рядом соблазняли проскочить приём.
+    row = [InlineKeyboardButton(text=STATUSES[nxt[0]], callback_data=f"st:{order_id}:{nxt[0]}")]
     return InlineKeyboardMarkup(inline_keyboard=[
         row,
         [InlineKeyboardButton(text="✏️ Изменить состав", callback_data=f"ed:{order_id}:0")],
